@@ -50,7 +50,7 @@ end
 
 %only analyze partial data
 start_t = 1;
-end_t = 80000;
+end_t = 40000;
 for i = 1:num_ch
     ch{i} = ch{i}(:,start_t:end_t);
 end
@@ -79,16 +79,16 @@ end
 %ch1, ch2: correlation channel of interest
 %[G] = pCF(c1,c2,dis,option);
 dis = 0;
-option = 2;
+option = 1;
 ch1 = 1;
 ch2 = 1;
 %dividing intensity carpet
-corr_div = 100;
+corr_div = 50;
 total_plot = 4;
 i = 1;
 
 counting = 0;
-for option = 1
+for option = 2
     for ch1 = 1
         figure
         for i = 1:total_plot
@@ -97,6 +97,7 @@ for option = 1
                 dis = i*8-4;
             elseif option == 1
                 dis = i*2-2;
+                %dis = 5;
             elseif option == 3
                 dis = i*2-2;
             end

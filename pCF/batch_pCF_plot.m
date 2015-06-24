@@ -38,7 +38,8 @@ subplot(1,plot_total,plot_p)
 axis_s = s_pixel*(0:(Gy-1));
 axis_t = l_time*(1:Gx);
 %smoothing
-h = fspecial('average',[3,3]);
+h = fspecial('average',[5,3]);
+
 Gsmooth = imfilter(Gnew, h);
 %Gsmooth = imfilter(Gsmooth, h);
 % if option == 2
@@ -53,6 +54,7 @@ shading interp
 
 %COLORMAP
 colormap jet
+%max_G = 0.02;
 max_G = max(max(Gsmooth));
 caxis([0 max_G])
 %caxis([-max_G max_G])
