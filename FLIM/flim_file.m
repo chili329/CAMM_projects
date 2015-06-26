@@ -13,26 +13,51 @@ G = medfilt2(G, [5 5]);
 S = medfilt2(S, [5 5]);
 
 %select only points above certain intensity
-int_min = 20;
-G(int_min > ref_int) = NaN;
-S(int_min > ref_int) = NaN;
+int_min = 40;
+
+new_int = ref_int;
+new_S = S;
+new_G = G;
+
+new_S(new_int<int_min) = NaN;
+new_G(new_int<int_min) = NaN;
+new_int(new_int<int_min) = NaN;
 
 %plot intensity
 figure
+subplot(2,2,1)
 imagesc(ref_int)
-colormap gray
 axis image
+title('original intensity')
+
+subplot(2,2,2)
+imagesc(new_int)
+axis image
+title('intensity with threshold')
+
+subplot(2,2,3)
+imagesc(new_S)
+caxis([0.2 0.8]) 
+axis image
+title('S')
+
+subplot(2,2,4)
+imagesc(new_G)
+caxis([0.2 0.8])
+axis image
+title('G')
+colormap hot
 
 %plot histogram
 figure
 subplot(2,2,1)
-hist(ref_int(:),[0:)
+hist(ref_int(:))
 title('intensity histogram')
 subplot(2,2,3)
-histogram(G(:),[0:0.1:1])
+histogram(new_G(:),[0:0.1:1])
 title('G histogram')
 subplot(2,2,4)
-histogram(S(:),[0:0.1:1])
+histogram(new_S(:),[0:0.1:1])
 title('S histogram')
 
 %plot phasor

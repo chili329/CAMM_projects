@@ -8,6 +8,8 @@ G_total = zeros(num_file,1);
 S_total = zeros(num_file,1);
 for i = 1 : num_file
     filename = ref_file{i};
+    condition = strsplit(filename,'/');
+    condition = condition(end);
     [ref_int, G, S, ref_ph1, ref_md1] = ref_read(filename);
 
     %median filter for G and S

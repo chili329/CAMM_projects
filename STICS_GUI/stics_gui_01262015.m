@@ -535,9 +535,11 @@ p_size = handles.pixel_size;
 cx = get(handles.cx,'value');
 cy = get(handles.cy,'value');
 %diffusion only
-%[MSD,x0,y0,diff,sig0] = iMSD_seg(scan,time,p_size,cx,cy);
+%[MSD,x0,y0,diff,sig0] = iMSD_seg_diff(scan,time,p_size,cx,cy);
 %diffusion + binding
-[MSD,x0,y0,diff,sig0] = iMSD_seg_bind(scan,time,p_size,cx,cy);
+%[MSD,x0,y0,diff,sig0] = iMSD_seg_diff_bind(scan,time,p_size,cx,cy);
+%binding only
+[Nt,tauT,sigT] = iMSD_seg_bind(scan)
 guidata(hObject, handles);
 
 
@@ -572,9 +574,11 @@ for i = 1 : imax
        cy = j*half_size+1;
        [ICS2DCorr] = partial_ICS(image_data,cx,cy,start_t,end_t,seg_size,tauLimit);
        %diffusion
-       %[MSD,x0,y0,diff,sig0] = iMSD_seg(ICS2DCorr,time,p_size,cx,cy);
+       [MSD,x0,y0,diff,sig0] = iMSD_seg_diff(ICS2DCorr,time,p_size,cx,cy);
        %diffusion + binding
-       [MSD,x0,y0,diff,sig0] = iMSD_seg_bind(ICS2DCorr,time,p_size,cx,cy);
+       %[MSD,x0,y0,diff,sig0] = iMSD_seg_diff_bind(ICS2DCorr,time,p_size,cx,cy);
+       %binding only
+       %[Nt,tauT,sigT] = iMSD_seg_bind(scan)
        diff_all(i,j) = diff;
        sig0_all(i,j) = sig0;
        cy_all(j) = cy;
