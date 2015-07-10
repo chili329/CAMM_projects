@@ -23,15 +23,18 @@ for t = 1:tsize
     [x,resnorm,residual] = lsqcurvefit(@dif,x0,xdata,scan(:,:,t),lb,ub,options);
     amp_init(t) = x(1);
 end
+
 xnew = zeros(5,tsize);
 %fix amp to the median of the initial fitting
 medamp = median(amp_init);
-lb = [medamp,-xsize/2,0,-xsize/2,0];
-ub = [medamp,xsize/2,10*xsize,xsize/2,1];
-for t = 1:tsize
-    options = optimset('TolFun',power(10,-7));
-    [x,resnorm,residual] = lsqcurvefit(@dif,x0,xdata,scan(:,:,t),lb,ub,options);
-    figure(t)
-    imagesc(residual)
-    xnew(:,t) = x;
+disp(medamp)
+%fit only if medamp > 0.002. smaller number is not physically realistic -> ~100000 particles in observation volume 
+if medamp > 0.002
+    lb = [medamp,-xsize/2,0,-xsize/2,0];
+    ub = [medamp,xsize/2,10*xsize,xsize/2,1];
+    for t = 1:tsize
+        options = optimset('TolFun',power(10,-7));
+        [x,resnorm,residual] = lsqcurvefit(@dif,x0,xdata,scan(:,:,t),lb,ub,options);
+        xnew(:,t) = x;
+    end
 end

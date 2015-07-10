@@ -230,6 +230,7 @@ axes(handles.stics_final);
 %HERE
 %need to get rid of autoscale
 imagesc(image_data(:,:,fra))
+colormap(handles.stics_final,'gray')
 axis image
 guidata(hObject, handles);
 
@@ -491,6 +492,7 @@ rotate3d on
 axes(handles.stics_corr);
 
 surf(handles.ICS2DCorr(:,:,fra),'EdgeColor','none');
+colormap(handles.stics_corr,'jet')
 caxis(handles.stics_corr, handles.v)
 axis(handles.stics_corr,handles.v2)
 view(0,90);
@@ -539,11 +541,14 @@ cy = get(handles.cy,'value');
 %diffusion + binding
 %[MSD,x0,y0,diff,sig0] = iMSD_seg_diff_bind(scan,time,p_size,cx,cy);
 %binding only
-[Nt,tauT,sigT] = iMSD_seg_bind(scan)
+%[Nt,tauT,sigT] = iMSD_seg_bind(scan)
+%with velocity
+[MSD,x0,y0,diff,sig0,v] = iMSD_seg_diff_v(scan,time,p_size,cx,cy);
 guidata(hObject, handles);
 
 
 % --- Executes on button press in iMSD_run.
+%overall iMSD for the entire image
 function iMSD_run_Callback(hObject, eventdata, handles)
 
 image_data = handles.image_data;
@@ -574,32 +579,43 @@ for i = 1 : imax
        cy = j*half_size+1;
        [ICS2DCorr] = partial_ICS(image_data,cx,cy,start_t,end_t,seg_size,tauLimit);
        %diffusion
-       [MSD,x0,y0,diff,sig0] = iMSD_seg_diff(ICS2DCorr,time,p_size,cx,cy);
+       %[MSD,x0,y0,diff,sig0] = iMSD_seg_diff(ICS2DCorr,time,p_size,cx,cy);
+       %with velocity
+       [MSD,x0,y0,diff,sig0,v] = iMSD_seg_diff_v(ICS2DCorr,time,p_size,cx,cy);
        %diffusion + binding
        %[MSD,x0,y0,diff,sig0] = iMSD_seg_diff_bind(ICS2DCorr,time,p_size,cx,cy);
        %binding only
        %[Nt,tauT,sigT] = iMSD_seg_bind(scan)
        diff_all(i,j) = diff;
        sig0_all(i,j) = sig0;
+       v_all(i,j) = v;
        cy_all(j) = cy;
     end
 end
 
 handles.diff_all = diff_all;
 handles.sig0_all = sig0_all;
-conc_all = ones(size(sig0_all))./sig0_all;
+%number of particles in the observation volume (N)= gamma/(pi*sig0)
+conc_all = 0.35/pi*ones(size(sig0_all))./sig0_all;
 %handles.Drics = Drics
 
 figure(1)
 plot(cy_all,handles.diff_all,'linewidth',2)
 title('Diffusion')
 set(gca,'FontSize',16)
+
 figure(2)
 plot(cy_all,conc_all,'linewidth',2)
 title('concentration')
 set(gca,'FontSize',16)
+
+figure(3)
+plot(cy_all,v_all,'linewidth',2)
+title('velocity')
+set(gca,'FontSize',16)
 save('diff.mat','diff_all');
 save('sig0.mat','sig0_all');
+save('v.mat','v_all');
 %save('Drics.mat','Drics');
 
 

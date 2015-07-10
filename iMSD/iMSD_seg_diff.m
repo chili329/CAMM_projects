@@ -11,11 +11,13 @@ y0 = zeros(t,1);
 
 %for all time point fitting
 [xnew, residual] = diff_fit_stack(scan);
+
 MSD = xnew(3,:)*p_size;
 x0 = xnew(2,:)*p_size;
 y0 = xnew(4,:)*p_size;
 amp = xnew(1,1);
 
+%HERE
 %fit with MSD = 4Dt+sig0
 p = polyfit(t_series(2:end),MSD(2:end),1);
 diff = p(1)/4;
@@ -31,9 +33,11 @@ hline.Color = 'r';
 
 str1 = strcat('D=',num2str(diff,'%.2f'));
 legend('MSD','x0','y0',str1)
-legend(gca,'Location','northwest')
-
+legend(gca,'Location','northwest')    
 str2 = strcat(num2str(cx),',',num2str(cy));
+if xnew(:,1) == zeros(5,1)
+    str2 = strcat(str2,'BAD');
+end
 title(str2)
 
 xlabel('time delay (s)','FontSize',16)
