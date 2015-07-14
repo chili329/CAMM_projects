@@ -4,8 +4,11 @@
 
 %input:
 %num_group - number of groups to compare
-%cell_seg - 1: perform cell segmentation, 0: no segmentation
-function [] = cell_phasor_groups(num_group,cell_seg)
+%cell_seg -
+%0: no segmentation
+%1: perform automatic cell segmentation
+%2: manual cell segmentation
+function [mask] = cell_phasor_groups(num_group,cell_seg)
 %close all
 %clear all
 
@@ -44,12 +47,17 @@ for k = 1:num_group
         S(int_min > ref_int) = NaN;
 
         %HERE
-        %cell segmentation, still pretty bad
+        %automatic cell segmentation, still pretty bad
         if cell_seg == 1
             mask = flim_cell_seg(ref_int);
+        %manual selection. save the mask?
+        elseif cell_seg == 2
+            mask = multi_ROI(ref_int);
+        %no segmentation
         else
             mask = ones(256,256,1);
         end
+        
 
         %from each file, extract cells
         cell_num = size(mask,3);
@@ -61,19 +69,27 @@ for k = 1:num_group
             Gmean=nanmean(Gcell(:));
             Smean=nanmean(Scell(:));
             if Gmean > 0 && Smean > 0
+                
                 Gmean_total = cat(1,Gmean_total,Gmean);
                 Smean_total = cat(1,Smean_total,Smean);
+                
                 %color dots by files
                 %s_color = cat(1,s_color,k);
+                
                 %create grouping
                 exp_group = cat(1,exp_group,k);
             end
         end
         G_total = cat(1,G_total,Gmean_total);
         S_total = cat(1,S_total,Smean_total);
-        
     end
 end
+
+%HERE: add group average?
+%for k = 1:num_group
+%    G_groupmean(k)
+%    S_groupmean(k)
+%end
 
 figure
 %s_color = linspace(1,10,size(G_total,1));

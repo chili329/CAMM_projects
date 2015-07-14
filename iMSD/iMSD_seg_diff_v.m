@@ -61,19 +61,18 @@ else
     Rsquare = 1-SSE1/SStotal;
     %std of residuals
     ss = sqrt(SSE1/df1);
+    %qhi square, not very useful
+    %chi = sum((ypred1-y).^2/ypred1);
+    %chiP = chi2cdf(chi,df1);
 end
 
 %test goodness of fit by mean square error
 %fit = goodnessOfFit(x1,polyval(p,x1),'MSE');
 %str2 = strcat(str2,num2str(fit,'%.2f'),'MSE');
+
 str2 = strcat(str2,'R^2',num2str(Rsquare,'%.2f'));
 str2 = strcat(str2,'std residuals',num2str(ss,'%.2f'));
-%individual fitting rsquared(rs) assessment
-%sstot = sum((y - mean(y)).^2);
-%rs1 = 1 - (SSE1 / sstot);
-%rs2 = 1 - (SSE2 / sstot);
-%str2 = strcat('sstot',num2str(sstot,'%.2f'),'ssres1',num2str(ssres1,'%.2f'));
-
+%str2 = strcat(str2,'Chi^2 P',num2str(chi,'%.2f'));
 %diff and v cannot be less than 0
 if diff < 0
     diff = 0;
@@ -84,7 +83,7 @@ if isreal(v) == 0
     str2 = strcat(str2,'-v');
 end
 
-
+%for regular individual plot
 figure(cx*1000+cy)
 hold on
 plot(t_series,MSD,'k','linewidth',2)
@@ -101,7 +100,5 @@ str2 = {str2,strcat(num2str(cx),',',num2str(cy))};
 title(str2)
 
 xlabel('time delay (s)','FontSize',16)
-ylabel('um','FontSize',16)
+ylabel('um^2','FontSize',16)
 set(gca,'FontSize',16)
-
-

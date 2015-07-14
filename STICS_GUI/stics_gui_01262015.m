@@ -173,6 +173,8 @@ display ch
 get(handles.ch,'Value')
 ch = get(handles.ch,'value');
 handles.image_data = handles.seri{ch};
+%immobile removal image
+handles.imm_data = immfilter_new(handles.image_data);
 guidata(hObject, handles);
 
 
@@ -228,7 +230,13 @@ else
 end
 axes(handles.stics_final);
 %HERE
-%need to get rid of autoscale
+%show immobile removal
+imm_data = handles.imm_data;
+
+%07132015: for showing raw, immobile removed, difference images, see
+%lsm_imgshow.m
+
+%ORIGINAL 07132015
 imagesc(image_data(:,:,fra))
 colormap(handles.stics_final,'gray')
 axis image
@@ -404,7 +412,7 @@ tauLimit = get(handles.tauLimit,'value');
 immobile = get(handles.immobile,'value');
 
 if immobile == 1
-    image_data = immfilter_new(image_data);
+    image_data = handles.imm_data;
 end
 [ICS2DCorr] = partial_ICS(image_data,cx,cy,start_t,end_t,seg_size,tauLimit);
 handles.ICS2DCorr = ICS2DCorr;
@@ -570,7 +578,7 @@ sig0_all = zeros(imax,jmax);
 Drics = zeros(imax,jmax);
 
 if immobile == 1
-    image_data = immfilter_new(image_data);
+    image_data = handles.imm_data;
 end
 
 for i = 1 : imax
