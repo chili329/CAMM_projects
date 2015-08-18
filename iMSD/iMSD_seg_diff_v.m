@@ -1,5 +1,5 @@
 %fit with diffusion + active transport model
-function [MSD,x0,y0,diff,sig0,v] = iMSD_seg_diff_v(scan,time,p_size,cx,cy)
+function [MSD,x0,y0,diff,amp,v] = iMSD_seg_diff_v(scan,time,p_size,cx,cy)
 
 str2 = [];
 %number of time points
@@ -13,7 +13,8 @@ y0 = zeros(t,1);
 %for all time point fitting
 [xnew, residual] = diff_fit_stack(scan);
 
-MSD = xnew(3,:)*p_size;
+%MSD is um^2, need to square the pixel size as well!!
+MSD = xnew(3,:)*p_size*p_size;
 x0 = xnew(2,:)*p_size;
 y0 = xnew(4,:)*p_size;
 amp = xnew(1,1);
@@ -43,7 +44,8 @@ F = (SSE1-SSE2)/(SSE2/df2);
 p_value = 1-fcdf(F,df1,df2);
 %str2 = strcat(str2, num2str(p_value,'%.2f'),'pValue');
 
-if p_value < 0.05
+%diffusion+transport
+if p_value < 0.01
     p = p2;
     %p = polyfit(x1,y,2);
     v = sqrt(p(1));
@@ -53,6 +55,7 @@ if p_value < 0.05
     %std of residuals
     ss = sqrt(SSE2/df2);
 else
+%diffusion only    
     p = p1;
     %p = polyfit(x1,y,1);
     v = 0;

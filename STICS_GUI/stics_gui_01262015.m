@@ -83,6 +83,8 @@ function load_image_Callback(hObject, eventdata, handles)
 clear handles.image_data handles.seri handles.img_file
 files = uipickfiles;
 filename = files{1};
+%[pathstr,name,ext] = fileparts(filename);
+
 [handles.seri, lsminf] = lsm_read(filename);
 handles.lsminf = lsminf;
 handles.num_ch = lsminf.NUMBER_OF_CHANNELS;
@@ -94,17 +96,20 @@ handles.pixel_size = lsminf.VoxelSizeX*10^(6);
 handles.t = lsminf.TimeStamps.TimeStamps(2);
 
 axes(handles.stics_final);
+%imagesc to imshow
 imagesc(handles.seri{1}(:,:,1))
+%imshow(mat2gray(handles.seri{1}(:,:,1)))
 guidata(hObject, handles);
 
 
 function pixel_size_Callback(hObject, eventdata, handles)
-%read from metadata
-
-% set(handles.pixel_size,'Value',str2double(get(hObject,'String')));
-% display pixel_size
-% get(handles.pixel_size,'Value')
-% guidata(hObject, handles);
+%HERE: conflict with data loading
+if isnumeric(handles.pixel_size) == 0
+    set(handles.pixel_size,'Value',str2double(get(hObject,'String')));
+    display pixel_size
+    get(handles.pixel_size,'Value');
+end
+guidata(hObject, handles);
 
 
 % --- Executes during object creation, after setting all properties.
@@ -115,12 +120,13 @@ end
 
 
 function t_Callback(hObject, eventdata, handles)
-%read from metadata
-
-% set(handles.t,'Value',str2double(get(hObject,'String')));
-% display t
-% get(handles.t,'Value')
-% guidata(hObject, handles);
+%HERE: conflict with data loading
+if isnumeric(handles.t) == 0
+    set(handles.t,'Value',str2double(get(hObject,'String')));
+    display t
+    get(handles.t,'Value');
+end
+guidata(hObject, handles);
 
 
 % --- Executes during object creation, after setting all properties.
@@ -134,7 +140,6 @@ function seg_size_Callback(hObject, eventdata, handles)
 set(handles.seg_size,'Value',str2num(get(hObject,'String')));
 get(handles.seg_size,'Value')
 guidata(hObject, handles);
-
 
 
 % --- Executes during object creation, after setting all properties.
@@ -229,6 +234,7 @@ else
     fra = frames;
 end
 axes(handles.stics_final);
+
 %HERE
 %show immobile removal
 imm_data = handles.imm_data;
@@ -237,7 +243,9 @@ imm_data = handles.imm_data;
 %lsm_imgshow.m
 
 %ORIGINAL 07132015
+%imagesc to imshow
 imagesc(image_data(:,:,fra))
+%imshow(mat2gray(image_data(:,:,fra)))
 colormap(handles.stics_final,'gray')
 axis image
 guidata(hObject, handles);
@@ -259,12 +267,13 @@ half_size = handles.half_size;
 pixel_size = handles.pixel_size;
 
 axes(handles.stics_final);
+
 stics_plot(image_data, Vx_total, Vy_total,half_size,pixel_size)
 
 
 % --- Executes on button press in simu.
 function simu_Callback(hObject, eventdata, handles)
-density = [5 5];
+
 countingNoise = 0;
 backgroundNoise = 0;
 
@@ -277,14 +286,22 @@ den2 = get(handles.den2,'value');
 diff1 = get(handles.diff1,'value');
 diff2 = get(handles.diff2,'value');
 
+%get the pixel_size and t
+pixel_size = get(handles.pixel_size,'Value');
+t = get(handles.t,'Value');
 %simul8tr(sizeXdesired,sizeYdesired,sizeT,density,bleachType,bleachDecay,qYield,pixelsize,timesize,PSFType,PSFSize,PSFZ,noBits,diffCoeff,flowX,flowY,flowZ,countingNoise,backgroundNoise);
 
-simu_data = simul8tr(64,64,1000,[den1 den2],'none',[0 0],[1 1],0.1,0.1,'g',0.3,0,12,[diff1 diff2],[flowX1 flowX2],[flowY1 flowY2],[0 0],countingNoise,backgroundNoise);
+simu_data = simul8tr(64,64,1000,[den1 den2],'none',[0 0],[1 1],pixel_size,t,'g',0.3,0,12,[diff1 diff2],[flowX1 flowX2],[flowY1 flowY2],[0 0],countingNoise,backgroundNoise);
 
 handles.image_data = simu_data; 
+%immobile removal image
+handles.imm_data = immfilter_new(handles.image_data);
 
 axes(handles.stics_final);
+%imagesc to imshow
 imagesc(handles.image_data(:,:,1));
+%imshow(mat2gray(handles.image_data(:,:,1)));
+
 guidata(hObject, handles);
 
 
@@ -296,7 +313,6 @@ guidata(hObject, handles);
 
 % --- Executes during object creation, after setting all properties.
 function flowX1_CreateFcn(hObject, eventdata, handles)
-
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
@@ -422,8 +438,16 @@ handles.ICS2DCorr = ICS2DCorr;
 %save('corr.mat','ICS2DCorr');
 axes(handles.stics_corr);
 surf(handles.ICS2DCorr(:,:,2),'EdgeColor','none');
-view(0,90);
-handles.v = caxis;
+%use the max at tau =1 for color upper limit 
+caxismax = max(max(ICS2DCorr(:,:,2)));
+caxismin = min(ICS2DCorr(:));
+handles.caxismax = caxismax;
+handles.caxismin = caxismin;
+caxis(handles.stics_corr,[caxismin caxismax])
+%HERE log z scale
+%set(gca,'zscale','log')
+view(0,-90);
+axis('equal')
 handles.v2 = axis;
 guidata(hObject, handles);
 
@@ -495,15 +519,23 @@ if time_slider <1
 else
     fra = tauLimit;
 end
-handles.v
+
 rotate3d on
 axes(handles.stics_corr);
 
 surf(handles.ICS2DCorr(:,:,fra),'EdgeColor','none');
+%HERE log z scale
+%set(gca,'zscale','log')
 colormap(handles.stics_corr,'jet')
-caxis(handles.stics_corr, handles.v)
+caxismax = handles.caxismax;
+caxismin = handles.caxismin;
+caxis(handles.stics_corr,[caxismin caxismax])
 axis(handles.stics_corr,handles.v2)
-view(0,90);
+view(0,-90);
+axis('square')
+%HERE
+xlim([0 32])
+ylim([0 32])
 
 
 % --- Executes during object creation, after setting all properties.
@@ -540,8 +572,18 @@ plot(pixel_t,'linewidth',2);
 % --- Executes on button press in iMSD.
 function iMSD_Callback(hObject, eventdata, handles)
 scan = handles.ICS2DCorr;
-time = handles.t;
-p_size = handles.pixel_size;
+if isnumeric(handles.t) == 0
+    time = get(handles.t,'value');
+else
+    time = handles.t;
+end
+
+if isnumeric(handles.pixel_size) == 0
+    p_size = get(handles.pixel_size,'value');
+else
+    p_size = handles.pixel_size;
+end
+
 cx = get(handles.cx,'value');
 cy = get(handles.cy,'value');
 %diffusion only
@@ -551,7 +593,7 @@ cy = get(handles.cy,'value');
 %binding only
 %[Nt,tauT,sigT] = iMSD_seg_bind(scan)
 %with velocity
-[MSD,x0,y0,diff,sig0,v] = iMSD_seg_diff_v(scan,time,p_size,cx,cy);
+[MSD,x0,y0,diff,amp,v] = iMSD_seg_diff_v(scan,time,p_size,cx,cy);
 guidata(hObject, handles);
 
 
@@ -575,6 +617,7 @@ jmax = ydim/half_size-1;
 cy_all = zeros(jmax,1);
 diff_all = zeros(imax,jmax);
 sig0_all = zeros(imax,jmax);
+conc_all = zeros(imax,jmax);
 Drics = zeros(imax,jmax);
 
 if immobile == 1
@@ -589,43 +632,54 @@ for i = 1 : imax
        %diffusion
        %[MSD,x0,y0,diff,sig0] = iMSD_seg_diff(ICS2DCorr,time,p_size,cx,cy);
        %with velocity
-       [MSD,x0,y0,diff,sig0,v] = iMSD_seg_diff_v(ICS2DCorr,time,p_size,cx,cy);
+       [MSD,x0,y0,diff,amp,v] = iMSD_seg_diff_v(ICS2DCorr,time,p_size,cx,cy);
        %diffusion + binding
        %[MSD,x0,y0,diff,sig0] = iMSD_seg_diff_bind(ICS2DCorr,time,p_size,cx,cy);
        %binding only
        %[Nt,tauT,sigT] = iMSD_seg_bind(scan)
        diff_all(i,j) = diff;
-       sig0_all(i,j) = sig0;
+       %number of particles in the observation volume (N)= gamma/(pi*amp)
+       amp_all(i,j) = amp;
+       %if amp is too small, cannot calculate concentration correctly
+       if amp>0.1
+        conc_all(i,j) = 0.35/(pi*amp);
+       else
+           conc_all(i,j) = 0;
+       end
        v_all(i,j) = v;
        cy_all(j) = cy;
     end
 end
 
+%use the max at tau =1 for color upper limit
+caxismax = max(max(ICS2DCorr(:,:,2)));
+caxismin = min(ICS2DCorr(:));
+handles.caxismax = caxismax;
+handles.caxismin = caxismin;
 handles.diff_all = diff_all;
-handles.sig0_all = sig0_all;
-%number of particles in the observation volume (N)= gamma/(pi*sig0)
-conc_all = 0.35/pi*ones(size(sig0_all))./sig0_all;
+handles.amp_all = amp_all;
+handles.conc_all = conc_all;
 %handles.Drics = Drics
 
 figure(1)
+subplot(3,1,1)
 plot(cy_all,handles.diff_all,'linewidth',2)
 title('Diffusion')
 set(gca,'FontSize',16)
 
-figure(2)
+subplot(3,1,2)
 plot(cy_all,conc_all,'linewidth',2)
 title('concentration')
 set(gca,'FontSize',16)
 
-figure(3)
+subplot(3,1,3)
 plot(cy_all,v_all,'linewidth',2)
 title('velocity')
 set(gca,'FontSize',16)
-save('diff.mat','diff_all');
-save('sig0.mat','sig0_all');
-save('v.mat','v_all');
+%save('diff.mat','diff_all');
+%save('sig0.mat','sig0_all');
+%save('v.mat','v_all');
 %save('Drics.mat','Drics');
-
 
 
 guidata(hObject, handles);
