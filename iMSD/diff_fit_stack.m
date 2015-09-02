@@ -48,6 +48,6 @@ for t = 1:tsize
 end
 
 %for test purpose only, plot the fitting result
-%for fr=1:tsize
-%    plotgaussfit_new(scan(:,:,fr),xnew(:,fr),residual(:,:,fr));
-%end
+% for fr=1:tsize
+%     plotgaussfit_new(scan(:,:,fr),xnew(:,fr),residual(:,:,fr));
+% end

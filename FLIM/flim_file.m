@@ -4,61 +4,80 @@
 close all
 clear all
 %file reading
-ref_file = uipickfiles;
-ref_file = ref_file{1};
-[ref_int, G, S, ref_ph1, ref_md1] = ref_read(ref_file);
+all_file = uipickfiles;
+file_num = size(all_file,2);
 
-%median filter for G and S
-G = medfilt2(G, [5 5]);
-S = medfilt2(S, [5 5]);
+for i = 1:file_num
+    ref_file = all_file{i};
+    [ref_int, G, S, ref_ph1, ref_md1] = ref_read(ref_file);
 
-%select only points above certain intensity
-int_min = 40;
+    %extract file name
+    condition = strsplit(ref_file,'/');
+    condition = condition(end);
 
-new_int = ref_int;
-new_S = S;
-new_G = G;
+    %median filter for G and S
+    G = medfilt2(G, [5 5]);
+    S = medfilt2(S, [5 5]);
 
-new_S(new_int<int_min) = NaN;
-new_G(new_int<int_min) = NaN;
-new_int(new_int<int_min) = NaN;
+    %select only points above certain intensity
+    int_min = 30;
+
+    new_int = ref_int;
+    new_S = S;
+    new_G = G;
+
+    new_S(new_int<int_min) = NaN;
+    new_G(new_int<int_min) = NaN;
+    new_int(new_int<int_min) = NaN;
+
+    %plot intensity + phasor
+    figure('Position', [0, 0, 300, 150])
+    subplot(1,2,1)
+    imagesc(new_int)
+    colormap(gca,'gray')
+    axis image
+    title(condition)
+    subplot(1,2,2)
+    plot_phasor(G,S)
+    set(gca,'color','black')
+end
 
 %plot intensity
-figure
-subplot(2,2,1)
-imagesc(ref_int)
-axis image
-title('original intensity')
-
-subplot(2,2,2)
-imagesc(new_int)
-axis image
-title('intensity with threshold')
-
-subplot(2,2,3)
-imagesc(new_S)
-caxis([0.2 0.8]) 
-axis image
-title('S')
-
-subplot(2,2,4)
-imagesc(new_G)
-caxis([0.2 0.8])
-axis image
-title('G')
-colormap hot
+% figure
+% subplot(2,2,1)
+% imagesc(ref_int)
+% axis image
+% title('original intensity')
+% 
+% subplot(2,2,2)
+% imagesc(new_int)
+% axis image
+% title('intensity with threshold')
+% 
+% subplot(2,2,3)
+% imagesc(new_S)
+% caxis([0.2 0.8]) 
+% axis image
+% title('S')
+% 
+% subplot(2,2,4)
+% imagesc(new_G)
+% caxis([0.2 0.8])
+% axis image
+% title('G')
+% colormap hot
 
 %plot histogram
-figure
-subplot(2,2,1)
-hist(ref_int(:))
-title('intensity histogram')
-subplot(2,2,3)
-histogram(new_G(:),[0:0.1:1])
-title('G histogram')
-subplot(2,2,4)
-histogram(new_S(:),[0:0.1:1])
-title('S histogram')
+% figure
+% subplot(2,2,1)
+% hist(ref_int(:))
+% title('intensity histogram')
+% subplot(2,2,3)
+% histogram(new_G(:),[0:0.1:1])
+% title('G histogram')
+% subplot(2,2,4)
+% histogram(new_S(:),[0:0.1:1])
+% title('S histogram')
 
 %plot phasor
-plot_phasor(G,S)
+% plot_phasor(new_G,new_S)

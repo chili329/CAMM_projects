@@ -4,13 +4,21 @@
 clear all
 close all
 
-AR_ch = 3;
-nuc_ch = 1;
+AR_ch = 1;
+nuc_ch = 2;
 
-%from LSM file
 files = uipickfiles;
 filename = files{1};
-[ch, lsminf] = lsm_read(filename);
+[pathstr,name,ext] = fileparts(filename);
+
+%from LSM file
+if strcmp(ext, '.lsm')
+    [ch, lsminf] = lsm_read(filename);
+elseif strcmp(ext, '.tif')
+    %from OMEtiff file
+    num_ch = 2;
+    ch = OMEtiff_read(filename, num_ch);
+end
 
 mov = ch{AR_ch};
 nuc = ch{nuc_ch};
@@ -23,21 +31,23 @@ time = size(mov,3);
 both_int = zeros(time,2);
 
 %nuc = nuc_segment(ch,fudgeFactor)
-BW = nuc_segment(nuc,1.2);
+BW_nuc = nuc_segment(nuc,1.2);
 
 %cytoplasm segmentation
-BW2 = nuc_segment(mov,1);
+BW_cyt = nuc_segment(mov,1);
 
 subplot(2,2,2), imagesc(mean(nuc,3)), title('\fontsize{20}nucleus'), axis image;
 subplot(2,2,1), imagesc(mean(mov,3)), title('\fontsize{20}AR'), axis image;
 %subplot(2,2,3), imshow(BW(:,:,1)), title('\fontsize{20}mask'), axis image;
-subplot(2,2,3), imshow(BW2(:,:,1)-BW(:,:,1)), title('\fontsize{20}mask'), axis image;
+subplot(2,2,3), imshow(BW_cyt(:,:,1)-BW_nuc(:,:,1)), title('\fontsize{20}cytoplasm mask'), axis image;
 
 
 %select nuleus, then cytoplasm
 for i = 1:2
-    if i == 2
-        BW = BW2-BW;
+    if i == 1
+        BW = BW_nuc;
+    elseif i == 2
+        BW = BW_cyt-BW_nuc;
         %BW = imcomplement(BW);
     end
     

@@ -22,7 +22,7 @@ function varargout = stics_gui_01262015(varargin)
 
 % Edit the above text to modify the response to help stics_gui_01262015
 
-% Last Modified by GUIDE v2.5 22-Jun-2015 13:47:26
+% Last Modified by GUIDE v2.5 19-Aug-2015 20:59:45
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -99,6 +99,21 @@ axes(handles.stics_final);
 %imagesc to imshow
 imagesc(handles.seri{1}(:,:,1))
 %imshow(mat2gray(handles.seri{1}(:,:,1)))
+
+%create video
+save_mov = get(handles.save_mov,'value');
+ch = 2;
+if save_mov == 1
+    writerObj = VideoWriter('data.avi');
+    open(writerObj);
+    for k = 1:100 
+       imshow(mat2gray(handles.seri{ch}(:,:,k)))
+       frame = getframe;
+       writeVideo(writerObj,frame);
+    end
+    close(writerObj);
+end
+
 guidata(hObject, handles);
 
 
@@ -201,7 +216,7 @@ pixel_size = handles.pixel_size;
 seg_size = get(handles.seg_size,'value');
 tauLimit = get(handles.tauLimit,'value');
 immobile = get(handles.immobile,'value');
-whitenoise = get(handles.immobile,'value');
+whitenoise = get(handles.whitenoise,'value');
 
 if immobile == 0
     immobile = 'n';
@@ -291,7 +306,21 @@ pixel_size = get(handles.pixel_size,'Value');
 t = get(handles.t,'Value');
 %simul8tr(sizeXdesired,sizeYdesired,sizeT,density,bleachType,bleachDecay,qYield,pixelsize,timesize,PSFType,PSFSize,PSFZ,noBits,diffCoeff,flowX,flowY,flowZ,countingNoise,backgroundNoise);
 
-simu_data = simul8tr(64,64,1000,[den1 den2],'none',[0 0],[1 1],pixel_size,t,'g',0.3,0,12,[diff1 diff2],[flowX1 flowX2],[flowY1 flowY2],[0 0],countingNoise,backgroundNoise);
+simu_data = simul8tr(32,32,1000,[den1 den2],'none',[0 0],[1 1],pixel_size,t,'g',0.3,0,12,[diff1 diff2],[flowX1 flowX2],[flowY1 flowY2],[0 0],countingNoise,backgroundNoise);
+
+%save into movie file
+save_mov = get(handles.save_mov,'value');
+if save_mov == 1
+    writerObj = VideoWriter('simu.avi');
+    open(writerObj);
+    for k = 1:100 
+       imagesc(simu_data(:,:,k));
+       colormap(gray)
+       frame = getframe;
+       writeVideo(writerObj,frame);
+    end
+    close(writerObj);
+end
 
 handles.image_data = simu_data; 
 %immobile removal image
@@ -444,10 +473,29 @@ caxismin = min(ICS2DCorr(:));
 handles.caxismax = caxismax;
 handles.caxismin = caxismin;
 caxis(handles.stics_corr,[caxismin caxismax])
-%HERE log z scale
-%set(gca,'zscale','log')
 view(0,-90);
 axis('equal')
+
+%create video
+save_mov = get(handles.save_mov,'value');
+if save_mov == 1
+    writerObj = VideoWriter('corr.avi');
+    open(writerObj);
+    kmax = min(20,tauLimit);
+    for k = 2:kmax 
+       surf(handles.ICS2DCorr(:,:,k),'EdgeColor','none'); 
+       colormap gray
+       caxismax = max(max(ICS2DCorr(:,:,2)));
+       caxismin = min(ICS2DCorr(:));
+       caxis(handles.stics_corr,[caxismin caxismax])
+       view(0,-90);
+       axis('equal')
+       frame = getframe;
+       writeVideo(writerObj,frame);
+    end
+    close(writerObj);
+end
+
 handles.v2 = axis;
 guidata(hObject, handles);
 
@@ -593,7 +641,7 @@ cy = get(handles.cy,'value');
 %binding only
 %[Nt,tauT,sigT] = iMSD_seg_bind(scan)
 %with velocity
-[MSD,x0,y0,diff,amp,v] = iMSD_seg_diff_v(scan,time,p_size,cx,cy);
+[MSD,x0,y0,diff,amp,v,sig0] = iMSD_seg_diff_v(scan,time,p_size,cx,cy);
 guidata(hObject, handles);
 
 
@@ -611,12 +659,16 @@ immobile = get(handles.immobile,'value');
 time = handles.t;
 p_size = handles.pixel_size;
 [xdim,ydim,zdim] = size(image_data);
-half_size = seg_size/2;
-imax = xdim/half_size-1;
-jmax = ydim/half_size-1;
+mov_sizex = seg_size/2; %shifting step size
+mov_sizey = seg_size/2; %shifting step size
+imin = seg_size/2/mov_sizex;
+jmin = seg_size/2/mov_sizey;
+imax = (xdim-seg_size/2)/mov_sizex;
+jmax = (ydim-seg_size/2)/mov_sizey;
 cy_all = zeros(jmax,1);
-diff_all = zeros(imax,jmax);
 sig0_all = zeros(imax,jmax);
+diff_all = zeros(imax,jmax);
+amp_all = zeros(imax,jmax);
 conc_all = zeros(imax,jmax);
 Drics = zeros(imax,jmax);
 
@@ -624,15 +676,15 @@ if immobile == 1
     image_data = handles.imm_data;
 end
 
-for i = 1 : imax
-    for j = 1 : jmax
-       cx = i*half_size+1;
-       cy = j*half_size+1;
+for i = imin : imax
+    for j = jmin : jmax
+       cx = i*mov_sizex+1;
+       cy = j*mov_sizey+1;
        [ICS2DCorr] = partial_ICS(image_data,cx,cy,start_t,end_t,seg_size,tauLimit);
        %diffusion
        %[MSD,x0,y0,diff,sig0] = iMSD_seg_diff(ICS2DCorr,time,p_size,cx,cy);
        %with velocity
-       [MSD,x0,y0,diff,amp,v] = iMSD_seg_diff_v(ICS2DCorr,time,p_size,cx,cy);
+       [MSD,x0,y0,diff,amp,v,sig0] = iMSD_seg_diff_v(ICS2DCorr,time,p_size,cx,cy);
        %diffusion + binding
        %[MSD,x0,y0,diff,sig0] = iMSD_seg_diff_bind(ICS2DCorr,time,p_size,cx,cy);
        %binding only
@@ -648,6 +700,7 @@ for i = 1 : imax
        end
        v_all(i,j) = v;
        cy_all(j) = cy;
+       sig0_all(i,j) = sig0;
     end
 end
 
@@ -662,20 +715,26 @@ handles.conc_all = conc_all;
 %handles.Drics = Drics
 
 figure(1)
-subplot(3,1,1)
+subplot(4,1,1)
 plot(cy_all,handles.diff_all,'linewidth',2)
 title('Diffusion')
 set(gca,'FontSize',16)
 
-subplot(3,1,2)
+subplot(4,1,2)
 plot(cy_all,conc_all,'linewidth',2)
 title('concentration')
 set(gca,'FontSize',16)
 
-subplot(3,1,3)
+subplot(4,1,3)
 plot(cy_all,v_all,'linewidth',2)
 title('velocity')
 set(gca,'FontSize',16)
+
+subplot(4,1,4)
+plot(cy_all,sig0_all,'linewidth',2)
+title('sig0')
+set(gca,'FontSize',16)
+
 %save('diff.mat','diff_all');
 %save('sig0.mat','sig0_all');
 %save('v.mat','v_all');
@@ -685,6 +744,8 @@ set(gca,'FontSize',16)
 guidata(hObject, handles);
 
 
-
-
-
+% --- Executes on button press in save_mov.
+function save_mov_Callback(hObject, eventdata, handles)
+get(handles.save_mov,'Value')
+display save_mov
+guidata(hObject, handles);

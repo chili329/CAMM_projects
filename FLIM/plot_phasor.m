@@ -2,7 +2,6 @@ function [] = plot_phasor(G,S)
 %PLOT unit circle
 theta = 0:0.01:pi;
 %unit circle
-figure
 plot(0.5+cos(theta)*0.5,sin(theta)*0.5,'Color','Blue');
 hold on
 

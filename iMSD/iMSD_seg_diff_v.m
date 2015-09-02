@@ -1,5 +1,5 @@
 %fit with diffusion + active transport model
-function [MSD,x0,y0,diff,amp,v] = iMSD_seg_diff_v(scan,time,p_size,cx,cy)
+function [MSD,x0,y0,diff,amp,v,sig0] = iMSD_seg_diff_v(scan,time,p_size,cx,cy)
 
 str2 = [];
 %number of time points
@@ -17,7 +17,7 @@ y0 = zeros(t,1);
 MSD = xnew(3,:)*p_size*p_size;
 x0 = xnew(2,:)*p_size;
 y0 = xnew(4,:)*p_size;
-amp = xnew(1,1);
+amp = xnew(1,1);%HERE: not sure about the unit
 
 x1 = t_series(2:end);
 y = MSD(2:end);
@@ -45,7 +45,7 @@ p_value = 1-fcdf(F,df1,df2);
 %str2 = strcat(str2, num2str(p_value,'%.2f'),'pValue');
 
 %diffusion+transport
-if p_value < 0.01
+if p_value < 0.0
     p = p2;
     %p = polyfit(x1,y,2);
     v = sqrt(p(1));
@@ -68,6 +68,8 @@ else
     %chi = sum((ypred1-y).^2/ypred1);
     %chiP = chi2cdf(chi,df1);
 end
+
+sig0 = sig0*p_size;
 
 %test goodness of fit by mean square error
 %fit = goodnessOfFit(x1,polyval(p,x1),'MSE');
