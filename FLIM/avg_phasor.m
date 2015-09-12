@@ -17,7 +17,7 @@ for i = 1 : num_file
     S = medfilt2(S, [5 5]);
 
     %select only points above certain intensity
-    int_min = 20;
+    int_min = 30;
     G(int_min > ref_int) = NaN;
     S(int_min > ref_int) = NaN;
     

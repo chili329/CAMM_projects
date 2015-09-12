@@ -1,6 +1,7 @@
 %segmentation for nucleus identification
 %ch: channel to process
-%fudgeFactor: 
+%fudgeFactor
+%varargin: add median filter
 function nuc = nuc_segment(mov,fudgeFactor,varargin)
 time = size(mov,3);
 nuc = zeros(size(mov,1),size(mov,2),time);
@@ -10,7 +11,7 @@ for i = 1:time
     I = medfilt2(I,[4 4]);
     
     if length(varargin) == 1
-        for i = 1:varargin{1}
+        for j = 1:varargin{1}
             I = medfilt2(I,[4 4]);
         end
     end

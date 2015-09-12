@@ -6,6 +6,7 @@ close all
 
 AR_ch = 1;
 nuc_ch = 2;
+frame_rate = 30.1; %seconds/frame
 
 files = uipickfiles;
 filename = files{1};
@@ -23,6 +24,10 @@ end
 mov = ch{AR_ch};
 nuc = ch{nuc_ch};
 
+%HERE: only takes the first frame to test segmentation
+%mov = mov(:,:,1);
+%nuc = nuc(:,:,1);
+
 %from tiff file
 %mov = double(tiff2mat);
 %nuc = double(tiff2mat);
@@ -31,16 +36,16 @@ time = size(mov,3);
 both_int = zeros(time,2);
 
 %nuc = nuc_segment(ch,fudgeFactor)
-BW_nuc = nuc_segment(nuc,1.2);
+BW_nuc = nuc_segment(nuc,2,2);
 
 %cytoplasm segmentation
 BW_cyt = nuc_segment(mov,1);
 
-subplot(2,2,2), imagesc(mean(nuc,3)), title('\fontsize{20}nucleus'), axis image;
+figure
 subplot(2,2,1), imagesc(mean(mov,3)), title('\fontsize{20}AR'), axis image;
-%subplot(2,2,3), imshow(BW(:,:,1)), title('\fontsize{20}mask'), axis image;
+subplot(2,2,2), imagesc(mean(nuc,3)), title('\fontsize{20}nucleus'), axis image;
 subplot(2,2,3), imshow(BW_cyt(:,:,1)-BW_nuc(:,:,1)), title('\fontsize{20}cytoplasm mask'), axis image;
-
+subplot(2,2,4), imshow(BW_nuc(:,:,1)), title('\fontsize{20}nucleus mask'), axis image;
 
 %select nuleus, then cytoplasm
 for i = 1:2
@@ -65,8 +70,9 @@ end
 
 %normalize by max
 both_int = both_int./max(both_int(:));
-subplot(2,2,4), plot(both_int(:,1),'color','k','linewidth',2)
+figure
+plot(frame_rate/60*(1:time),both_int(:,1),'color','k','linewidth',2)
 hold on
-plot(both_int(:,2),'color','r','linewidth',2)
-axis([0,size(mov,3),0,1])
+plot(frame_rate/60*(1:time),both_int(:,2),'color','r','linewidth',2)
+axis([0,time*frame_rate/60,0,1])
 set(gca,'FontSize',20),title('\fontsize{20}nuc(k) cyto(r)')

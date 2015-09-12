@@ -1,4 +1,4 @@
-%plot the free-bound ratio for each ref file
+%load multiple files, boxplot the free-bound ratio for pixels in each file
 close all
 clear all
 ref_file = uipickfiles;
@@ -13,7 +13,9 @@ for k = 1 : length(ref_file)
     %save filenames
     filenames = strsplit(filename,'/');
     filenames = filenames(end);
-    files(k) = filenames;
+    filenames = filenames{1};
+    filenames = filenames(1:(end-9));
+    files{k} = filenames;
     
     [ref_int, G, S, ref_ph1, ref_md1] = ref_read(filename);
 
@@ -22,7 +24,7 @@ for k = 1 : length(ref_file)
     S = medfilt2(S, [5 5]);
 
     %select only points above certain intensity
-    int_min = 40;
+    int_min = 30;
 
     new_int = ref_int;
     new_S = S;

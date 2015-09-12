@@ -1,4 +1,5 @@
-%calculate average G and S value based on intensity threshold
+%calculate average G and S value based on cell segmentation (flim_cell_seg)
+%displays original intensity, segmentation image, cell phasor plot
 close all
 clear all
 %file reading

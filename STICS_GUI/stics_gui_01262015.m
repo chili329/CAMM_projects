@@ -468,7 +468,7 @@ handles.ICS2DCorr = ICS2DCorr;
 axes(handles.stics_corr);
 surf(handles.ICS2DCorr(:,:,2),'EdgeColor','none');
 %use the max at tau =1 for color upper limit 
-caxismax = max(max(ICS2DCorr(:,:,2)));
+caxismax = max(max(max(ICS2DCorr(:,:,2:end))));
 caxismin = min(ICS2DCorr(:));
 handles.caxismax = caxismax;
 handles.caxismin = caxismin;
@@ -485,7 +485,7 @@ if save_mov == 1
     for k = 2:kmax 
        surf(handles.ICS2DCorr(:,:,k),'EdgeColor','none'); 
        colormap gray
-       caxismax = max(max(ICS2DCorr(:,:,2)));
+       caxismax = max(max(max(ICS2DCorr(:,:,2:end))));
        caxismin = min(ICS2DCorr(:));
        caxis(handles.stics_corr,[caxismin caxismax])
        view(0,-90);
@@ -634,6 +634,8 @@ end
 
 cx = get(handles.cx,'value');
 cy = get(handles.cy,'value');
+
+fit_option = 2;
 %diffusion only
 %[MSD,x0,y0,diff,sig0] = iMSD_seg_diff(scan,time,p_size,cx,cy);
 %diffusion + binding
@@ -641,7 +643,12 @@ cy = get(handles.cy,'value');
 %binding only
 %[Nt,tauT,sigT] = iMSD_seg_bind(scan)
 %with velocity
-[MSD,x0,y0,diff,amp,v,sig0] = iMSD_seg_diff_v(scan,time,p_size,cx,cy);
+if fit_option == 1
+    iMSD_seg_diff_v(scan,time,p_size,cx,cy);
+end
+if fit_option == 2
+    iMSD_seg_rot_iso(scan,time,p_size,cx,cy);
+end
 guidata(hObject, handles);
 
 
@@ -670,7 +677,12 @@ sig0_all = zeros(imax,jmax);
 diff_all = zeros(imax,jmax);
 amp_all = zeros(imax,jmax);
 conc_all = zeros(imax,jmax);
-Drics = zeros(imax,jmax);
+theta_all = zeros(imax,jmax);
+amp1_all= zeros(imax,jmax);
+amp2_all= zeros(imax,jmax);
+sx_all= zeros(imax,jmax);
+sy_all= zeros(imax,jmax);
+s_all= zeros(imax,jmax);
 
 if immobile == 1
     image_data = handles.imm_data;
@@ -681,65 +693,115 @@ for i = imin : imax
        cx = i*mov_sizex+1;
        cy = j*mov_sizey+1;
        [ICS2DCorr] = partial_ICS(image_data,cx,cy,start_t,end_t,seg_size,tauLimit);
+       
        %diffusion
        %[MSD,x0,y0,diff,sig0] = iMSD_seg_diff(ICS2DCorr,time,p_size,cx,cy);
-       %with velocity
-       [MSD,x0,y0,diff,amp,v,sig0] = iMSD_seg_diff_v(ICS2DCorr,time,p_size,cx,cy);
+       fit_option = 2;
+       %with velocity %used until 20150910
+       if fit_option ==1
+           [MSD,x0,y0,diff,amp,v,sig0] = iMSD_seg_diff_v(ICS2DCorr,time,p_size,cx,cy);
+           diff_all(i,j) = diff;
+           %number of particles in the observation volume (N)= gamma/(pi*amp)
+           amp_all(i,j) = amp;
+           %if amp is too small, cannot calculate concentration correctly
+           if amp>0.1
+            conc_all(i,j) = 0.35/(pi*amp);
+           else
+               conc_all(i,j) = 0;
+           end
+           v_all(i,j) = v;
+           cy_all(j) = cy;
+           sig0_all(i,j) = sig0;
+       end
        %diffusion + binding
        %[MSD,x0,y0,diff,sig0] = iMSD_seg_diff_bind(ICS2DCorr,time,p_size,cx,cy);
+       
        %binding only
        %[Nt,tauT,sigT] = iMSD_seg_bind(scan)
-       diff_all(i,j) = diff;
-       %number of particles in the observation volume (N)= gamma/(pi*amp)
-       amp_all(i,j) = amp;
-       %if amp is too small, cannot calculate concentration correctly
-       if amp>0.1
-        conc_all(i,j) = 0.35/(pi*amp);
-       else
-           conc_all(i,j) = 0;
+       
+       %rot+iso 2D Gaussian
+       if fit_option == 2
+           [xnew] = iMSD_seg_rot_iso(ICS2DCorr,time,p_size,cx,cy);
+           %xnew:
+           %[Amp1,x0  ,sx  ,y0  ,sy  ,theta,  bg, Amp2,  x1,s    ,y1]
+           %[x(1),x(2),x(3),x(4),x(5),x(6) ,x(7), x(8),x(9),x(10),x(11)]
+           %HERE:
+           theta_all(i,j) = median(xnew(6,:)).*180/pi;
+           amp1_all(i,j) = median(xnew(1,:));
+           amp2_all(i,j) = median(xnew(8,:));
+           sx_all(i,j) = sqrt(median(xnew(3,:))./2)*2.35;
+           sy_all(i,j) = sqrt(median(xnew(5,:))./2)*2.35;
+           s_all(i,j) = sqrt(median(xnew(10,:))./2)*2.35;
+           cy_all(j) = cy;
        end
-       v_all(i,j) = v;
-       cy_all(j) = cy;
-       sig0_all(i,j) = sig0;
+       
+
     end
 end
 
 %use the max at tau =1 for color upper limit
-caxismax = max(max(ICS2DCorr(:,:,2)));
+caxismax = max(max(max(ICS2DCorr(:,:,2:end))));
 caxismin = min(ICS2DCorr(:));
 handles.caxismax = caxismax;
 handles.caxismin = caxismin;
+
 handles.diff_all = diff_all;
 handles.amp_all = amp_all;
 handles.conc_all = conc_all;
-%handles.Drics = Drics
 
-figure(1)
-subplot(4,1,1)
-plot(cy_all,handles.diff_all,'linewidth',2)
-title('Diffusion')
-set(gca,'FontSize',16)
+if fit_option == 1
+    figure(1)
+    subplot(4,1,1)
+    plot(cy_all,diff_all,'linewidth',2)
+    title('Diffusion')
+    set(gca,'FontSize',16)
 
-subplot(4,1,2)
-plot(cy_all,conc_all,'linewidth',2)
-title('concentration')
-set(gca,'FontSize',16)
+    subplot(4,1,2)
+    plot(cy_all,conc_all,'linewidth',2)
+    title('concentration')
+    set(gca,'FontSize',16)
 
-subplot(4,1,3)
-plot(cy_all,v_all,'linewidth',2)
-title('velocity')
-set(gca,'FontSize',16)
+    subplot(4,1,3)
+    plot(cy_all,v_all,'linewidth',2)
+    title('velocity')
+    set(gca,'FontSize',16)
 
-subplot(4,1,4)
-plot(cy_all,sig0_all,'linewidth',2)
-title('sig0')
-set(gca,'FontSize',16)
+    subplot(4,1,4)
+    plot(cy_all,sig0_all,'linewidth',2)
+    title('sig0')
+    set(gca,'FontSize',16)
+end
 
+if fit_option == 2
+    figure(1)
+    subplot(3,1,1)
+    plot(cy_all,theta_all,'linewidth',2)
+    title('Theta')
+    set(gca,'FontSize',16)
+ 
+    subplot(3,1,2)
+    hold on
+    plot(cy_all,sx_all,'color',[0 0 1],'linewidth',2)
+    plot(cy_all,sy_all,'color',[0 0 0.6],'linewidth',2)
+    plot(cy_all,s_all,'color',[0 1 0],'linewidth',2)
+    title('FWMH(pixel)')
+    legend('sx','sy','s')
+    set(gca,'FontSize',16)
+    hold off
+    
+    subplot(3,1,3)
+    hold on
+    plot(cy_all,amp1_all,'r','linewidth',2)
+    plot(cy_all,amp2_all,'b','linewidth',2)
+    title('Amp')
+    legend('Amp1','Amp2')
+    set(gca,'FontSize',16)
+    hold off
+
+end
 %save('diff.mat','diff_all');
 %save('sig0.mat','sig0_all');
 %save('v.mat','v_all');
-%save('Drics.mat','Drics');
-
 
 guidata(hObject, handles);
 
