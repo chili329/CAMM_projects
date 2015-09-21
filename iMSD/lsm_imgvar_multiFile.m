@@ -11,12 +11,12 @@ for file = 1:num_file
     [seri, lsminf] = lsm_read(filename);
     
     %channel of interest
-    ch = 2;
-    nuc_ch = 1;
+    ch = 1;
+    nuc_ch = 2;
     %starting frame
     frame1 = 1;
     %number of frames to use
-    num_avg = 1000;
+    num_avg = 500;
     
     image_data = seri{ch};
     if nuc_ch >0
@@ -77,7 +77,7 @@ for file = 1:num_file
 %     colorbar
 %     t_str = strcat('imm removed variance/avg,',num2str(num_avg));
 %     title(t_str);
-    colormap(jet(1024))
+    colormap(gray(1024))
     
     %movie_file(tot) = getframe(gcf);
 

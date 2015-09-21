@@ -7,6 +7,7 @@
 %AR_RICS(:,4): G0
 %AR_RICS(:,5): Chi square, fitting quality
 
+close all
 %count number of occurances
 [x,y] = size(AR_RICS);
 
@@ -58,18 +59,19 @@ end
 
 %boxplot based on location
 figure
-boxplot([AR_nuc AR_cyt]);
-ylabel('D (um^2/s)','FontSize',16)
-set(gca,'FontSize',16)
+b1 = boxplot([AR_nuc AR_cyt],'colors','k');
+ylabel('D (um^2/s)','FontSize',24)
+set(gca,'FontSize',24)
 set(gca,'XTickLabel',{'Nucleus','Cytoplasm'})
+set(b1,'linewidth',2);
 
 %boxplot based on time
 figure
-boxplot([AR_before AR_0 AR_1 AR_2 AR_3]);
-ylabel('D (um^2/s)','FontSize',16)
-set(gca,'FontSize',16)
+b2 = boxplot([AR_before AR_0 AR_1 AR_2 AR_3],'color','k');
+ylabel('D (um^2/s)','FontSize',24)
+set(gca,'FontSize',24)
 set(gca,'XTickLabel',{'No ligand','0-10 min','10-20 min','20-30 min','30- min'})
-
+set(b2,'linewidth',2);
 %ttest
 [hn,pn] = ttest2(AR_nuc,AR_cyt);
 [h0,p0] = ttest2(AR_before,AR_0);
@@ -77,4 +79,3 @@ set(gca,'XTickLabel',{'No ligand','0-10 min','10-20 min','20-30 min','30- min'})
 [h2,p2] = ttest2(AR_before,AR_2);
 [h3,p3] = ttest2(AR_before,AR_3);
 
-pn,p0,p1,p2,p3

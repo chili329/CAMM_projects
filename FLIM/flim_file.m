@@ -7,6 +7,9 @@ clear all
 all_file = uipickfiles;
 file_num = size(all_file,2);
 
+%plot intensity + phasor
+%figure('Position', [0, 0, 300, 150])
+figure
 for i = 1:file_num
     ref_file = all_file{i};
     [ref_int, G, S, ref_ph1, ref_md1] = ref_read(ref_file);
@@ -30,16 +33,15 @@ for i = 1:file_num
     new_G(new_int<int_min) = NaN;
     new_int(new_int<int_min) = NaN;
 
-    %plot intensity + phasor
-    figure('Position', [0, 0, 300, 150])
-    subplot(1,2,1)
+    
+    subplot(file_num,2,i*2-1)
     imagesc(new_int)
     colormap(gca,'gray')
     axis image
     title(condition)
-    subplot(1,2,2)
-    plot_phasor(G,S)
-    set(gca,'color','black')
+    subplot(file_num,2,i*2)
+    plot_phasor(new_G,new_S)
+    set(gca,'color','white')
 end
 
 %plot intensity

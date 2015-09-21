@@ -1,12 +1,12 @@
-%automatically select nucleus position for each frame
-%20150515: added cytoplasm segmentation
-
+% %automatically select nucleus position for each frame
+% %20150515: added cytoplasm segmentation
+% 
 clear all
 close all
 
-AR_ch = 1;
-nuc_ch = 2;
-frame_rate = 30.1; %seconds/frame
+AR_ch = 3;
+nuc_ch = 1;
+frame_rate = 20; %seconds/frame
 
 files = uipickfiles;
 filename = files{1};
@@ -21,17 +21,13 @@ elseif strcmp(ext, '.tif')
     ch = OMEtiff_read(filename, num_ch);
 end
 
-mov = ch{AR_ch};
-nuc = ch{nuc_ch};
+mov_ori = ch{AR_ch};
+nuc_ori = ch{nuc_ch};
 
-%HERE: only takes the first frame to test segmentation
-%mov = mov(:,:,1);
-%nuc = nuc(:,:,1);
-
-%from tiff file
-%mov = double(tiff2mat);
-%nuc = double(tiff2mat);
-
+%only takes a portion of frames
+mov = mov_ori(:,:,1:130);
+nuc = nuc_ori(:,:,1:130);
+% 
 time = size(mov,3);
 both_int = zeros(time,2);
 
@@ -68,11 +64,16 @@ for i = 1:2
     both_int(:,i) = mean_int;
 end
 
+%from tiff file
+%mov = double(tiff2mat);
+%nuc = double(tiff2mat);
+
+
 %normalize by max
 both_int = both_int./max(both_int(:));
 figure
-plot(frame_rate/60*(1:time),both_int(:,1),'color','k','linewidth',2)
+plot(frame_rate/60*(1:time),both_int(:,1),'color','k','linewidth',6)
 hold on
-plot(frame_rate/60*(1:time),both_int(:,2),'color','r','linewidth',2)
+plot(frame_rate/60*(1:time),both_int(:,2),'color','r','linewidth',6)
 axis([0,time*frame_rate/60,0,1])
-set(gca,'FontSize',20),title('\fontsize{20}nuc(k) cyto(r)')
+set(gca,'FontSize',32)%,title('\fontsize{20}nuc(k) cyto(r)')

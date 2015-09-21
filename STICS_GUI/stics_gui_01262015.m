@@ -322,9 +322,10 @@ if save_mov == 1
     close(writerObj);
 end
 
-handles.image_data = simu_data; 
+handles.image_data = simu_data;
+size(simu_data)
 %immobile removal image
-handles.imm_data = immfilter_new(handles.image_data);
+handles.imm_data = immfilter_new(simu_data);
 
 axes(handles.stics_final);
 %imagesc to imshow
@@ -469,7 +470,7 @@ axes(handles.stics_corr);
 surf(handles.ICS2DCorr(:,:,2),'EdgeColor','none');
 %use the max at tau =1 for color upper limit 
 caxismax = max(max(max(ICS2DCorr(:,:,2:end))));
-caxismin = min(ICS2DCorr(:));
+caxismin = min(min(min(ICS2DCorr(:,:,2:end))));
 handles.caxismax = caxismax;
 handles.caxismin = caxismin;
 caxis(handles.stics_corr,[caxismin caxismax])
@@ -486,7 +487,7 @@ if save_mov == 1
        surf(handles.ICS2DCorr(:,:,k),'EdgeColor','none'); 
        colormap gray
        caxismax = max(max(max(ICS2DCorr(:,:,2:end))));
-       caxismin = min(ICS2DCorr(:));
+       caxismin = min(min(min(ICS2DCorr(:,:,2:end))));
        caxis(handles.stics_corr,[caxismin caxismax])
        view(0,-90);
        axis('equal')
@@ -574,7 +575,7 @@ axes(handles.stics_corr);
 surf(handles.ICS2DCorr(:,:,fra),'EdgeColor','none');
 %HERE log z scale
 %set(gca,'zscale','log')
-colormap(handles.stics_corr,'jet')
+colormap(handles.stics_corr,'gray')
 caxismax = handles.caxismax;
 caxismin = handles.caxismin;
 caxis(handles.stics_corr,[caxismin caxismax])
@@ -683,6 +684,12 @@ amp2_all= zeros(imax,jmax);
 sx_all= zeros(imax,jmax);
 sy_all= zeros(imax,jmax);
 s_all= zeros(imax,jmax);
+theta_e = zeros(imax,jmax);
+amp1_e= zeros(imax,jmax);
+amp2_e= zeros(imax,jmax);
+sx_e= zeros(imax,jmax);
+sy_e= zeros(imax,jmax);
+s_e= zeros(imax,jmax);
 
 if immobile == 1
     image_data = handles.imm_data;
@@ -721,18 +728,37 @@ for i = imin : imax
        
        %rot+iso 2D Gaussian
        if fit_option == 2
-           [xnew] = iMSD_seg_rot_iso(ICS2DCorr,time,p_size,cx,cy);
+           [xnew, se] = iMSD_seg_rot_iso(ICS2DCorr,time,p_size,cx,cy);
            %xnew:
            %[Amp1,x0  ,sx  ,y0  ,sy  ,theta,  bg, Amp2,  x1,s    ,y1]
            %[x(1),x(2),x(3),x(4),x(5),x(6) ,x(7), x(8),x(9),x(10),x(11)]
-           %HERE:
-           theta_all(i,j) = median(xnew(6,:)).*180/pi;
+           %adjust theta to be consistant
+           new_theta = median(xnew(6,:)).*180/pi;
+           if i == 1 && j == 1
+               theta_all(i,j) = new_theta;
+           elseif (new_theta - theta_all(i,j-1)) > 90
+               theta_all(i,j) = new_theta - 180;
+           elseif (new_theta - theta_all(i,j-1)) < -90
+               theta_all(i,j) = new_theta + 180;
+           else
+               theta_all(i,j) = new_theta;
+           end
+           
            amp1_all(i,j) = median(xnew(1,:));
            amp2_all(i,j) = median(xnew(8,:));
            sx_all(i,j) = sqrt(median(xnew(3,:))./2)*2.35;
            sy_all(i,j) = sqrt(median(xnew(5,:))./2)*2.35;
            s_all(i,j) = sqrt(median(xnew(10,:))./2)*2.35;
            cy_all(j) = cy;
+           
+           amp1_e(i,j) = median(se(1,:));
+           amp2_e(i,j) = median(se(8,:));
+           sx_e(i,j) = sqrt(median(se(3,:))./2)*2.35;
+           sy_e(i,j) = sqrt(median(se(5,:))./2)*2.35;
+           s_e(i,j) = sqrt(median(se(10,:))./2)*2.35;
+           theta_e(i,j) =  median(se(6,:)).*180/pi;
+           
+           
        end
        
 
@@ -741,7 +767,7 @@ end
 
 %use the max at tau =1 for color upper limit
 caxismax = max(max(max(ICS2DCorr(:,:,2:end))));
-caxismin = min(ICS2DCorr(:));
+caxismin = min(min(min(ICS2DCorr(:,:,2:end))));
 handles.caxismax = caxismax;
 handles.caxismin = caxismin;
 
@@ -773,29 +799,55 @@ if fit_option == 1
 end
 
 if fit_option == 2
-    figure(1)
+    figure('units','normalized','position',[.1 .1 0.3 0.5])
     subplot(3,1,1)
-    plot(cy_all,theta_all,'linewidth',2)
+    errorbar(cy_all,theta_all,theta_e,'linewidth',2)
+    hold on
+    h1 = refline([0 -180]);
+    h2 = refline([0 -90]);
+    h3 = refline([0 0]);
+    h4 = refline([0 90]);
+    h5 = refline([0 180]);
+    h1.Color = [0.5 0.5 0.5];
+    h2.Color = [0.5 0.5 0.5];
+    h3.Color = [0.5 0.5 0.5];
+    h4.Color = [0.5 0.5 0.5];
+    h5.Color = [0.5 0.5 0.5];
+    h1.LineStyle = '--';
+    h2.LineStyle = '--';
+    h3.LineStyle = '--';
+    h4.LineStyle = '--';
+    h5.LineStyle = '--';
     title('Theta')
-    set(gca,'FontSize',16)
+    set(gca,'FontSize',14)
+    m_theta = (max(theta_all)+min(theta_all))/2;
+    axis([-inf inf m_theta-180 m_theta+180])
+    box off
+    hold off
  
     subplot(3,1,2)
     hold on
-    plot(cy_all,sx_all,'color',[0 0 1],'linewidth',2)
-    plot(cy_all,sy_all,'color',[0 0 0.6],'linewidth',2)
-    plot(cy_all,s_all,'color',[0 1 0],'linewidth',2)
+    errorbar(cy_all,sx_all,sx_e,'color',[0 0 1],'linewidth',2)
+    errorbar(cy_all,sy_all,sy_e,'color',[0 .5 1],'linewidth',2)
+    errorbar(cy_all,s_all,s_e,'color',[0 1 1],'linewidth',2)
+    h6 = refline([0 32]);
+    h6.Color = [0.5 0.5 0.5];
+    h6.LineStyle = '--';
     title('FWMH(pixel)')
     legend('sx','sy','s')
-    set(gca,'FontSize',16)
+    set(gca,'FontSize',14)
+    axis([-inf inf 0 40])
     hold off
+    
     
     subplot(3,1,3)
     hold on
-    plot(cy_all,amp1_all,'r','linewidth',2)
-    plot(cy_all,amp2_all,'b','linewidth',2)
+    errorbar(cy_all,amp1_all,amp1_e,'color',[.2 .2 .2],'linewidth',2)
+    errorbar(cy_all,amp2_all,amp2_e,'color',[.6 .6 .6],'linewidth',2)
     title('Amp')
-    legend('Amp1','Amp2')
-    set(gca,'FontSize',16)
+    legend('Amp(Rot)','Amp(iso)')
+    set(gca,'FontSize',14)
+    axis([-inf inf 0 inf])
     hold off
 
 end

@@ -8,17 +8,23 @@
 %0: no segmentation
 %1: perform automatic cell segmentation
 %2: manual cell segmentation
-function [mask] = cell_phasor_groups(num_group,cell_seg)
+function [G_total,S_total,exp_group] = cell_phasor_groups(num_group,cell_seg)
 %close all
 %clear all
 
 %file reading
 ref_file = [];
 num_file = [];
-%num_group = 2;
+
+%select folder, else select individual files
+folder_mode = 1;
+
 for m = 1:num_group
-    ref_file{m} = uipickfiles;
-    num_file(m) = size(ref_file{m},2);
+    %for directly selecting files
+    if folder_mode == 0
+        ref_file{m} = uipickfiles;
+        num_file(m) = size(ref_file{m},2);
+    end
 end
 
 G_total = [];
@@ -26,9 +32,20 @@ S_total = [];
 exp_group = [];
 
 %read multiple files
+if folder_mode == 1
+    ref_folder = uipickfiles;
+end
 for k = 1:num_group
+    if folder_mode == 1
+        ref_file = getAllFiles(ref_folder{k});
+        num_file(k) = size(ref_file,1);
+    end
     for i = 1 : num_file(k)
-        filename = ref_file{k}{i};
+        if folder_mode == 0
+            filename = ref_file{k}{i};
+        else
+            filename = ref_file{i};
+        end
         %HERE
         %take filename and identify the exp condition (cell type, days,
         %treatment etc.)
@@ -85,17 +102,28 @@ for k = 1:num_group
     end
 end
 
-%HERE: add group average?
-%for k = 1:num_group
-%    G_groupmean(k)
-%    S_groupmean(k)
-%end
+%HERE: add S and G group mean
+Ggm = zeros(num_group,1);
+Sgm = zeros(num_group,1);
+
+for k = 1:num_group
+    Glist = G_total(exp_group==k);
+    Slist = S_total(exp_group==k);
+    Ggm(k) = mean(Glist);
+    Sgm(k) = mean(Slist);
+end
 
 figure
 %s_color = linspace(1,10,size(G_total,1));
 %scatter(G_total,S_total,[],s_color,'filled','MarkerEdgeColor',[0 0 0])
-gscatter(G_total,S_total,exp_group)
+gscatter(G_total,S_total,exp_group,'bbrr','xoxo')
 xlabel('g')
 ylabel('s')
-%legend('group1','group2','Location','Best');
-set(gca,'FontSize',16) 
+%CHANGE FOR DIFFERENT GROUPS
+g1 = strcat('PC9 control,G:',num2str(Ggm(1),'%.2f'),',S:',num2str(Sgm(1),'%.2f'));
+g2 = strcat('PC9 E,G:',num2str(Ggm(2),'%.2f'),',S:',num2str(Sgm(2),'%.2f'));
+g3 = strcat('T790M control,G:',num2str(Ggm(3),'%.2f'),',S:',num2str(Sgm(3),'%.2f'));
+g4 = strcat('T790M E,G:',num2str(Ggm(4),'%.2f'),',S:',num2str(Sgm(4),'%.2f'));
+legend(g1,g2,g3,g4,'Location','Best')
+
+set(gca,'FontSize',16)

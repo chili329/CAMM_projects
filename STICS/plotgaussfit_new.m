@@ -36,18 +36,45 @@ if fit_option == 2
         '/theta',num2str(x(6).*180/pi,'%.2f'),'/bg',num2str(x(7)));
 end
 
+%OLD PLOT: surf plot
+% figure
+% subplot(1,2,1)
+% s=surf(scan);
+% set(s,'FaceColor','interp')
+% set(s,'EdgeColor','none')
+% set(s,'FaceAlpha',0.7)
+% set(gca,'FontSize',20)
+% hold on
+% m = surf(xdata(:,:,1),xdata(:,:,2),F);
+% set(m,'EdgeColor',[0.2 0.2 0.2])
+% axis off
+% title(str1)
+% set(gca,'FontSize',16)
+% 
+% subplot(1,2,2)
+% surf(residual)
+
+
+%contour plot
 figure
-subplot(1,2,1)
-s=surf(scan);
-set(s,'FaceColor','interp')
-%set(s,'EdgeColor','none')
-set(s,'FaceAlpha',0.7)
-set(gca,'FontSize',20)
-hold on
-m = mesh(xdata(:,:,1),xdata(:,:,2),F);
-set(m,'EdgeColor',[0.2 0.2 0.2])
+subplot(1,3,1)
+%s=contour(scan,'ShowText','on');
+s=contour(scan);
+view(0,-90);
+axis image
+axis off
+
+subplot(1,3,2)
+m = contour(xdata(:,:,1),xdata(:,:,2),F);
+view(0,-90);
+axis image
+axis off
+
+subplot(1,3,3)
+contour(residual)
+view(0,-90);
+axis image
+axis off
 
 title(str1)
 set(gca,'FontSize',16)
-subplot(1,2,2)
-surf(residual)
