@@ -81,12 +81,14 @@ for t = 1:tsize
     
     rt = 0.75;
     
-    if rsquare2 < rt && rsquare < rt   
+    %poor fit, everything goes to 0
+    if rsquare2 < rt/5 && rsquare < rt/5   
         x = zeros(1,11);
         r = zeros(size(r));
         J = zeros(size(J));
     end
     
+    %only iso
     if rsquare2 > rt
         x = cat(2,zeros(1,6),x2);
         r = r2;
@@ -103,16 +105,20 @@ for t = 1:tsize
     residual(:,:,t) = r;
     xnew(:,t)=x;
     
-    if rsquare2 < rt && rsquare < rt 
+    %poor fit, everything goes to 0
+    if rsquare2 < rt/5 && rsquare < rt/5 
         serror(:,t) = zeros(size(se(:,1)));
     end
+    %only iso
     if rsquare2 > rt
         serror(:,t) = cat(1,zeros(6,1),se(:,1));
     end
+    
     if rsquare > rt && rsquare2 < rt
         serror(:,t) = se(:,1);
     end
-   
+    
+    %if amp2 is smaller than 0.01, then the rest is 0
     %if amp2 is less than 1% amp1, then 0
     if xnew(8,t) < 0.0005 || xnew(8,t) < xnew(1,t)*0.01
         xnew(8,t) = 0;
@@ -135,6 +141,7 @@ for t = 1:tsize
     %x axis is the longer one
     if xnew(3,t)<xnew(5,t)
         [xnew(3,t),xnew(5,t)] = deal(xnew(5,t),xnew(3,t));
+        [serror(3,t),serror(5,t)] = deal(serror(5,t),serror(3,t));
         %decide whether add pi/2 or subtract pi/2 by the difference with
         %previous point
         if t > 1
@@ -151,7 +158,7 @@ end
 %bring theta to the same level
 if min(xnew(6,:)) > 0.9*pi/2
     xnew(6,:) = xnew(6,:)-ones(1,tsize).*pi;
-elseif max(xnew(6,:)) < 0.1*pi/2
+elseif max(xnew(6,:)) < 0
     xnew(6,:) = xnew(6,:)+ones(1,tsize).*pi;
 end
     

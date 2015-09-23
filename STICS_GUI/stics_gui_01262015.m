@@ -306,7 +306,7 @@ pixel_size = get(handles.pixel_size,'Value');
 t = get(handles.t,'Value');
 %simul8tr(sizeXdesired,sizeYdesired,sizeT,density,bleachType,bleachDecay,qYield,pixelsize,timesize,PSFType,PSFSize,PSFZ,noBits,diffCoeff,flowX,flowY,flowZ,countingNoise,backgroundNoise);
 
-simu_data = simul8tr(32,32,1000,[den1 den2],'none',[0 0],[1 1],pixel_size,t,'g',0.3,0,12,[diff1 diff2],[flowX1 flowX2],[flowY1 flowY2],[0 0],countingNoise,backgroundNoise);
+simu_data = simul8tr(256,32,1000,[den1 den2],'none',[0 0],[1 1],pixel_size,t,'g',0.3,0,12,[diff1 diff2],[flowX1 flowX2],[flowY1 flowY2],[0 0],countingNoise,backgroundNoise);
 
 %save into movie file
 save_mov = get(handles.save_mov,'value');
@@ -323,7 +323,6 @@ if save_mov == 1
 end
 
 handles.image_data = simu_data;
-size(simu_data)
 %immobile removal image
 handles.imm_data = immfilter_new(simu_data);
 
@@ -664,8 +663,19 @@ end_t = get(handles.end_t,'value');
 seg_size = get(handles.seg_size,'value');
 tauLimit = get(handles.tauLimit,'value');
 immobile = get(handles.immobile,'value');
-time = handles.t;
-p_size = handles.pixel_size;
+
+if isnumeric(handles.t) == 0
+    time = get(handles.t,'value');
+else
+    time = handles.t;
+end
+
+if isnumeric(handles.pixel_size) == 0
+    p_size = get(handles.pixel_size,'value');
+else
+    p_size = handles.pixel_size;
+end
+
 [xdim,ydim,zdim] = size(image_data);
 mov_sizex = seg_size/2; %shifting step size
 mov_sizey = seg_size/2; %shifting step size

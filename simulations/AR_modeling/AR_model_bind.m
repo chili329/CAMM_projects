@@ -20,20 +20,20 @@ close all
 %probability of state transition
 %run length = P_aa * v_mean, avg 2-10 um
 %assuming before drug treatment, population is all D --> P_dd ~da_ratio
-P_ad = 0.33;
-P_ab = 0.33;
+
+P_ad = 0.5;
+P_ab = 0.3;
+P_dd = 0.5;
+P_db = 0.3;
+P_ba = 0.2;
+P_bd = 0.5;
+
 P_aa = 1-P_ad-P_ab;
-
-P_dd = 0.43;
-P_db = 0.33;
 P_da = 1-P_dd-P_db;
-
-P_ba = 0.23;
-P_bd = 0.33;
 P_bb = 1-P_ba-P_bd;
 
 %data matrix
-time_end = 3600; % total time of simulation. unit: second
+time_end = 1800; % total time of simulation. unit: second
 total_AR = 1000; % total number of AR
 total_length = 50.0; % from membrane to nucleus. unit: um
 total_time = [1:time_end]';
@@ -51,11 +51,11 @@ v_mean = 0.2; %mean velocity of microtubule transport, um/s
               %from literature: 0.08 - 0.5 um
 v_sig = v_mean/2; %velocity std of microtubule transport
 
-%probability of getting into nucleus
-
-nuc_in = (2:time_end)*0.00003;
+%probability of getting into nucleu
+%for increasing nuc_in
+nuc_in = (1:time_end)*0.00003;
 %for constant nuc_in
-%nuc_in = ones(time_end-1,1)*0.05;
+%nuc_in = ones(time_end,1)*0.05;
 
 %probability of getting outside nucleus
 nuc_out = 0;

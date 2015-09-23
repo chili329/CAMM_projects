@@ -4,7 +4,7 @@ function [xnew, serror] = iMSD_seg_rot_iso(scan,time,p_size,cx,cy)
 str2 = [];
 %number of time points
 t = size(scan,3);
-t_series = (2:t).*time;
+t_series = (2:t)*time;
 
 MSD = zeros(t,1);
 x0 = zeros(t,1);
@@ -89,7 +89,7 @@ set(l2,'FontSize',18);
 
 
 %%%separate plot%%%
-figure('units','normalized','position',[.1 .1 0.5 0.5])
+figure('units','normalized','position',[.1 .1 0.2 0.3])
 hAx1 = subplot(2,1,1);
 hold(hAx1, 'on');
 xplot(1,:) = xnew(1,:);

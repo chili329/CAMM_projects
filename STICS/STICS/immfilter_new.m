@@ -1,5 +1,5 @@
 function mobile = immfilter_new(img_data);
-
+img_data = double(img_data);
 %20150227
 %subtracting overall average from each frame. same as old code
 [x,y,z] = size(img_data);
@@ -24,7 +24,7 @@ if bleach_method == 2
     %1999-2008
     for i = 1:z
         factor = sqrt(self_mean(i)./total_mean);
-        mobile1(:,:,i) = img_data(:,:,i)./factor + ones(x,y)*total_mean*(1-factor);
+        mobile1(:,:,i) = img_data(:,:,i)/factor + ones(x,y,1)*total_mean*(1-factor);
         %mobile1(:,:,i) = img_data(:,:,i);
     end
 end

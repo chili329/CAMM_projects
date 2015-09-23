@@ -5,10 +5,13 @@
 %input:
 %num_group - number of groups to compare
 %cell_seg -
-%0: no segmentation
-%1: perform automatic cell segmentation
-%2: manual cell segmentation
-function [G_total,S_total,exp_group] = cell_phasor_groups(num_group,cell_seg)
+    %0: no segmentation
+    %1: perform automatic cell segmentation (default)
+    %2: manual cell segmentation
+%folder_mode -
+    %0: select files for each group
+    %1: select folders (default)
+function [G_total,S_total,exp_group] = cell_phasor_groups(num_group,cell_seg,folder_mode)
 %close all
 %clear all
 
@@ -16,8 +19,15 @@ function [G_total,S_total,exp_group] = cell_phasor_groups(num_group,cell_seg)
 ref_file = [];
 num_file = [];
 
-%select folder, else select individual files
-folder_mode = 1;
+%default
+if nargin == 1 
+    cell_seg = 1;
+    folder_mode = 1;
+end 
+if nargin == 2
+    folder_mode = 1;
+end
+
 
 for m = 1:num_group
     %for directly selecting files
@@ -102,7 +112,7 @@ for k = 1:num_group
     end
 end
 
-%HERE: add S and G group mean
+%add S and G group mean
 Ggm = zeros(num_group,1);
 Sgm = zeros(num_group,1);
 
@@ -113,6 +123,15 @@ for k = 1:num_group
     Sgm(k) = mean(Slist);
 end
 
+%determine if the groups are significantly different using Hotelling's T-Squared test for two multivariate independent samples 
+%with unequal covariance matrices.
+stat_input = zeros(size(exp_group,1),3);
+for i = 1:size(exp_group)
+    stat_input(i,:) = [exp_group(i) G_total(i) S_total(i)];
+end
+
+p_value = T2Hot2ihe(stat_input);
+
 figure
 %s_color = linspace(1,10,size(G_total,1));
 %scatter(G_total,S_total,[],s_color,'filled','MarkerEdgeColor',[0 0 0])
@@ -120,10 +139,10 @@ gscatter(G_total,S_total,exp_group,'bbrr','xoxo')
 xlabel('g')
 ylabel('s')
 %CHANGE FOR DIFFERENT GROUPS
-g1 = strcat('PC9 control,G:',num2str(Ggm(1),'%.2f'),',S:',num2str(Sgm(1),'%.2f'));
-g2 = strcat('PC9 E,G:',num2str(Ggm(2),'%.2f'),',S:',num2str(Sgm(2),'%.2f'));
-g3 = strcat('T790M control,G:',num2str(Ggm(3),'%.2f'),',S:',num2str(Sgm(3),'%.2f'));
-g4 = strcat('T790M E,G:',num2str(Ggm(4),'%.2f'),',S:',num2str(Sgm(4),'%.2f'));
-legend(g1,g2,g3,g4,'Location','Best')
-
+%g1 = strcat('PC9 control,G:',num2str(Ggm(1),'%.2f'),',S:',num2str(Sgm(1),'%.2f'));
+%g2 = strcat('PC9 E,G:',num2str(Ggm(2),'%.2f'),',S:',num2str(Sgm(2),'%.2f'));
+%g3 = strcat('T790M control,G:',num2str(Ggm(3),'%.2f'),',S:',num2str(Sgm(3),'%.2f'));
+%g4 = strcat('T790M E,G:',num2str(Ggm(4),'%.2f'),',S:',num2str(Sgm(4),'%.2f'));
+%legend(g1,g2,g3,g4,'Location','Best')
+title(num2str(p_value))
 set(gca,'FontSize',16)
