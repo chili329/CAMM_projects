@@ -22,7 +22,7 @@ function varargout = stics_gui_01262015(varargin)
 
 % Edit the above text to modify the response to help stics_gui_01262015
 
-% Last Modified by GUIDE v2.5 19-Aug-2015 20:59:45
+% Last Modified by GUIDE v2.5 08-Oct-2015 14:25:41
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -290,7 +290,7 @@ stics_plot(image_data, Vx_total, Vy_total,half_size,pixel_size)
 function simu_Callback(hObject, eventdata, handles)
 
 countingNoise = 0;
-backgroundNoise = 0;
+backgroundNoise = 1;
 
 flowX1 = get(handles.flowX1,'value');
 flowY1 = get(handles.flowY1,'value');
@@ -463,6 +463,7 @@ end
 handles.ICS2DCorr = ICS2DCorr;
 
 %HERE: save for testing
+csvwrite('test.csv',ICS2DCorr(:,:,2));
 %ICS2DCorr = handles.ICS2DCorr;
 %save('corr.mat','ICS2DCorr');
 axes(handles.stics_corr);
@@ -656,13 +657,17 @@ guidata(hObject, handles);
 %overall iMSD for the entire image
 function iMSD_run_Callback(hObject, eventdata, handles)
 
-image_data = handles.image_data;
-[X,Y,T] = size(image_data)
 start_t = get(handles.start_t,'value');
 end_t = get(handles.end_t,'value');
 seg_size = get(handles.seg_size,'value');
 tauLimit = get(handles.tauLimit,'value');
 immobile = get(handles.immobile,'value');
+
+if immobile == 1
+    image_data = handles.imm_data;
+else
+    image_data = handles.image_data;
+end
 
 if isnumeric(handles.t) == 0
     time = get(handles.t,'value');
@@ -701,9 +706,6 @@ sx_e= zeros(imax,jmax);
 sy_e= zeros(imax,jmax);
 s_e= zeros(imax,jmax);
 
-if immobile == 1
-    image_data = handles.imm_data;
-end
 
 for i = imin : imax
     for j = jmin : jmax
@@ -768,10 +770,22 @@ for i = imin : imax
            s_e(i,j) = sqrt(median(se(10,:))./2)*2.35;
            theta_e(i,j) =  median(se(6,:)).*180/pi;
            
+           %tau = 1
+           amp1_1(i,j) = xnew(1,2);
+           amp2_1(i,j) = xnew(8,2);
+           sx_1(i,j) = sqrt(xnew(3,2)./2)*2.35;
+           sy_1(i,j) = sqrt(xnew(5,2)./2)*2.35;
+           s_1(i,j) = sqrt(xnew(10,2)./2)*2.35;
+           %HERE: also theta
            
+           %tau = 2
+           amp1_2(i,j) = xnew(1,3);
+           amp2_2(i,j) = xnew(8,3);
+           sx_2(i,j) = sqrt(xnew(3,3)./2)*2.35;
+           sy_2(i,j) = sqrt(xnew(5,3)./2)*2.35;
+           s_2(i,j) = sqrt(xnew(10,3)./2)*2.35;
+                      
        end
-       
-
     end
 end
 
@@ -849,7 +863,6 @@ if fit_option == 2
     axis([-inf inf 0 40])
     hold off
     
-    
     subplot(3,1,3)
     hold on
     errorbar(cy_all,amp1_all,amp1_e,'color',[.2 .2 .2],'linewidth',2)
@@ -859,7 +872,61 @@ if fit_option == 2
     set(gca,'FontSize',14)
     axis([-inf inf 0 inf])
     hold off
+    
+    %fit result + original image
+    figure
+    hold on
+    raw_img = handles.image_data;
+    raw_mean = mean(raw_img(:,:,1:100),3);
+    imagesc(flipud(raw_mean))
+    
+    %amplitude to linewidth between 0.5 to 4
+    lmin = 0.5;
+    lmax = 4;
+    %for median plot
+    aallmin = min(min(amp1_all,amp2_all));
+    aallmax = max(max(amp1_all,amp2_all));
+    if aallmax == 0
+        scaleall = 0;
+    else
+        scaleall = (lmax-lmin)./(aallmax-aallmin);
+    end
+    
+    %scale1 for tau = 1
+    a1min = min(min(amp1_1,amp2_1));
+    a1max = max(max(amp1_1,amp2_1));
+    if a1max == 0
+        scale1 = 0;
+    else
+        scale1 = (lmax-lmin)./(a1max-a1min);
+    end
 
+    %scale2 for tau = 2
+    a2min = min(min(amp1_2,amp2_2));
+    a2max = max(max(amp1_2,amp2_2));
+    if a2max == 0
+        scale2 = 0;
+    else
+        scale2 = (lmax-lmin)./(a2max-a2min);
+    end
+    
+    colormap(gray(1024))
+    
+    %color
+    sc1 = [1 1 0]; %color for tau=2, rot (yellow)
+    cc1 = [1 0 0]; %color for tau=2, iso (red)
+    sc2 = [1 0.5 0]; %color for tau=1, rot (orange)
+    cc2 = [0.9 0 0.9]; %color for tau=1, iso (purple)
+    
+    for i = 1:size(cy_all)
+        %plot the median
+        %angle_plot(17,cy_all(i),theta_all(i),s_all(i),sx_all(i),sy_all(i),amp1_all(i)*scaleall1+lmin,amp2_all(i)*scaleall2+lmin,scall,ccall);
+        %plot tau = 1
+        angle_plot(17,cy_all(i),theta_all(i),s_1(i),sx_1(i),sy_1(i),amp1_1(i)*scale1+lmin,amp2_1(i)*scale1+lmin,sc1,cc1);
+        %plot tau = 2
+        %angle_plot(17,cy_all(i),theta_all(i),s_2(i),sx_2(i),sy_2(i),amp1_2(i)*scale2+lmin,amp2_2(i)*scale2+lmin,sc2,cc2);
+    end
+    axis image
 end
 %save('diff.mat','diff_all');
 %save('sig0.mat','sig0_all');

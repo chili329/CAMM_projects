@@ -36,33 +36,36 @@ eplot(10,:) = sqrt(serror(10,:)./2)*2.35;
 eplot(1,:) = serror(1,:).*1000;
 eplot(8,:) = serror(8,:).*1000;
 
-%%%for regular individual plot%%%
-figure(cx*1000+cy)
-%str2 = {str2,strcat(num2str(cx),',',num2str(cy))};
-%title(str2)
+%%%plotting%%%
+series_plot = 0;
+separate_plot = 0;
+if series_plot == 1
+    figure(cx*1000+cy)
+    %str2 = {str2,strcat(num2str(cx),',',num2str(cy))};
+    %title(str2)
 
-%iso Gaussian parameters
-subplot(2,1,1)
-hold on
-for item = [8 10 9 11]
-    errorbar(t_series,xplot(item,2:end),eplot(item,2:end),'linewidth',2)
+    %iso Gaussian parameters
+    subplot(2,1,1)
+    hold on
+    for item = [8 10 9 11]
+        errorbar(t_series,xplot(item,2:end),eplot(item,2:end),'linewidth',2)
+    end
+    l1 = legend('Amp(iso)*1000','s','x1','y1','Location','eastoutside','Orientation','vertical');
+    hold off
+    set(gca,'FontSize',16)
+    set(l1,'FontSize',18);
+
+    %rot Gaussian parameters
+    subplot(2,1,2)
+    hold on
+    for item = [1 3 5 2 4 6]
+        errorbar(t_series,xplot(item,2:end),eplot(item,2:end),'linewidth',2)
+    end
+    l2 = legend('Amp(rot)*1000','sx','sy','x0','y0','theta','Location','eastoutside','Orientation','vertical');
+    hold off
+    set(gca,'FontSize',16)
+    set(l2,'FontSize',18);
 end
-l1 = legend('Amp(iso)*1000','s','x1','y1','Location','eastoutside','Orientation','vertical');
-hold off
-set(gca,'FontSize',16)
-set(l1,'FontSize',18);
-
-%rot Gaussian parameters
-subplot(2,1,2)
-hold on
-for item = [1 3 5 2 4 6]
-    errorbar(t_series,xplot(item,2:end),eplot(item,2:end),'linewidth',2)
-end
-l2 = legend('Amp(rot)*1000','sx','sy','x0','y0','theta','Location','eastoutside','Orientation','vertical');
-hold off
-set(gca,'FontSize',16)
-set(l2,'FontSize',18);
-
 %%%combined plot%%%
 % figure('units','normalized','position',[.1 .1 1 0.5])
 % xplot(1,:) = xnew(1,:);
@@ -89,23 +92,25 @@ set(l2,'FontSize',18);
 
 
 %%%separate plot%%%
-figure('units','normalized','position',[.1 .1 0.2 0.3])
-hAx1 = subplot(2,1,1);
-hold(hAx1, 'on');
-xplot(1,:) = xnew(1,:);
-xplot(8,:) = xnew(8,:);
-eplot(1,:) = serror(1,:);
-eplot(8,:) = serror(8,:);
-errorbar(hAx1,t_series,xplot(1,2:end),eplot(1,2:end),'Linewidth',4,'color',[.2 .2 .2]);
-errorbar(hAx1,t_series,xplot(8,2:end),eplot(8,2:end),'Linewidth',4,'color',[.6 .6 .6]);
-set(hAx1,'FontSize',24)
-%legend('Amp(rot)','Amp(iso)')
+if separate_plot == 1
+    figure('units','normalized','position',[.1 .1 0.2 0.3])
+    hAx1 = subplot(2,1,1);
+    hold(hAx1, 'on');
+    xplot(1,:) = xnew(1,:);
+    xplot(8,:) = xnew(8,:);
+    eplot(1,:) = serror(1,:);
+    eplot(8,:) = serror(8,:);
+    errorbar(hAx1,t_series,xplot(1,2:end),eplot(1,2:end),'Linewidth',4,'color',[.2 .2 .2]);
+    errorbar(hAx1,t_series,xplot(8,2:end),eplot(8,2:end),'Linewidth',4,'color',[.6 .6 .6]);
+    set(hAx1,'FontSize',24)
+    %legend('Amp(rot)','Amp(iso)')
 
-hAx2 = subplot(2,1,2);
-hold(hAx2, 'on');
-errorbar(hAx2,t_series,xplot(3,2:end),eplot(3,2:end),'Linewidth',4,'color',[1 0 1]);
-errorbar(hAx2,t_series,xplot(5,2:end),eplot(5,2:end),'Linewidth',4,'color',[0.5 0 1]);
-errorbar(hAx2,t_series,xplot(10,2:end),eplot(10,2:end),'Linewidth',4,'color',[0 0 1]);
-set(hAx2,'FontSize',24)
-ylim(hAx2,[-50 50])
-%legend('sx','sy','s')
+    hAx2 = subplot(2,1,2);
+    hold(hAx2, 'on');
+    errorbar(hAx2,t_series,xplot(3,2:end),eplot(3,2:end),'Linewidth',4,'color',[1 0 1]);
+    errorbar(hAx2,t_series,xplot(5,2:end),eplot(5,2:end),'Linewidth',4,'color',[0.5 0 1]);
+    errorbar(hAx2,t_series,xplot(10,2:end),eplot(10,2:end),'Linewidth',4,'color',[0 0 1]);
+    set(hAx2,'FontSize',24)
+    ylim(hAx2,[-50 50])
+    %legend('sx','sy','s')
+end

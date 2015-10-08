@@ -20,9 +20,8 @@ xdata(:,:,2) = Y;
 
 %Amp1: rotational Gaussian
 %Amp2: iso Gaussian
-%10^(-3)
-Amp1l = 5*10^(-4);Amp1u = 1;
-Amp2l = 5*g10^(-4);Amp2u = 1;
+Amp1l = 10^(-3);Amp1u = 1;
+Amp2l = 5*10^(-4);Amp2u = 1;
 
 %restrict center position
 xylim = 10;
@@ -139,7 +138,7 @@ for t = 1:tsize
     
     %if amp2 is smaller than 0.01, then the rest is 0
     %if amp2 is less than 1% amp1, then 0
-    if xnew(8,t) < 10^(-3) || xnew(8,t) < xnew(1,t)*0.01
+    if xnew(8,t) < 0.0005 || xnew(8,t) < xnew(1,t)*0.01
         xnew(8,t) = 0;
         xnew(9,t) = 0;
         xnew(10,t) = 0;
@@ -148,7 +147,7 @@ for t = 1:tsize
     
     %if amp1 is smaller than 0.01, then the rest is 0
     %OR if amp1 is less than 1% amp2, then 0
-    if xnew(1,t) < 10^(-3) || xnew(1,t) < xnew(8,t)*0.01
+    if xnew(1,t) < 0.0005 || xnew(1,t) < xnew(8,t)*0.01
         xnew(1,t) = 0;
         xnew(2,t) = 0;
         xnew(3,t) = 0;

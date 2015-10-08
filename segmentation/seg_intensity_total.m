@@ -1,32 +1,32 @@
-% %automatically select nucleus position for each frame
-% %20150515: added cytoplasm segmentation
+% % %automatically select nucleus position for each frame
+% % %20150515: added cytoplasm segmentation
+% % 
+% clear all
+% close all
 % 
-clear all
-close all
-
-AR_ch = 3;
-nuc_ch = 1;
-frame_rate = 20; %seconds/frame
-
-files = uipickfiles;
-filename = files{1};
-[pathstr,name,ext] = fileparts(filename);
-
-%from LSM file
-if strcmp(ext, '.lsm')
-    [ch, lsminf] = lsm_read(filename);
-elseif strcmp(ext, '.tif')
-    %from OMEtiff file
-    num_ch = 2;
-    ch = OMEtiff_read(filename, num_ch);
-end
-
-mov_ori = ch{AR_ch};
-nuc_ori = ch{nuc_ch};
+% AR_ch = 3;
+% nuc_ch = 1;
+% frame_rate = 20; %seconds/frame
+% 
+% files = uipickfiles;
+% filename = files{1};
+% [pathstr,name,ext] = fileparts(filename);
+% 
+% %from LSM file
+% if strcmp(ext, '.lsm')
+%     [ch, lsminf] = lsm_read(filename);
+% elseif strcmp(ext, '.tif')
+%     %from OMEtiff file
+%     num_ch = 2;
+%     ch = OMEtiff_read(filename, num_ch);
+% end
+% 
+% mov_ori = ch{AR_ch};
+% nuc_ori = ch{nuc_ch};
 
 %only takes a portion of frames
-mov = mov_ori(:,:,1:130);
-nuc = nuc_ori(:,:,1:130);
+mov = mov_ori(:,:,100);
+nuc = nuc_ori(:,:,100);
 % 
 time = size(mov,3);
 both_int = zeros(time,2);
