@@ -17,6 +17,17 @@ function [] = angle_plot(x,y,theta,s,sx,sy,amp1,amp2,sc,cc)
 s = s./2;
 sx = sx./2;
 sy = sy./2;
+s2 = 0;
+%if sx = sy (within 5% differnece), then plot circle rather than cross
+if sx == sy
+    if s == 0
+        s = sx;
+    else
+        s2 = sx;
+    end
+    sx = 0;
+    sy = 0;
+end
 
 sint = sin(theta*pi/180);
 cost = cos(theta*pi/180);
@@ -31,3 +42,7 @@ plot([sx*cost+y -sx*cost+y],[sx*sint+x -sx*sint+x],'linewidth',amp1,'color',sc)
 plot([sy*cost2+y -sy*cost2+y],[sy*sint2+x -sy*sint2+x],'linewidth',amp1,'color',sc)
 %s
 circle(y,x,s,cc,amp2)
+%s2
+if s2 > 0
+    circle(y,x,s2,sc,amp1);
+end

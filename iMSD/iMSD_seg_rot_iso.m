@@ -37,8 +37,8 @@ eplot(1,:) = serror(1,:).*1000;
 eplot(8,:) = serror(8,:).*1000;
 
 %%%plotting%%%
-series_plot = 0;
-separate_plot = 0;
+series_plot = 1;
+separate_plot = 1;
 if series_plot == 1
     figure(cx*1000+cy)
     %str2 = {str2,strcat(num2str(cx),',',num2str(cy))};
@@ -94,7 +94,7 @@ end
 %%%separate plot%%%
 if separate_plot == 1
     figure('units','normalized','position',[.1 .1 0.2 0.3])
-    hAx1 = subplot(2,1,1);
+    hAx1 = subplot(1,1,1);
     hold(hAx1, 'on');
     xplot(1,:) = xnew(1,:);
     xplot(8,:) = xnew(8,:);
@@ -103,14 +103,15 @@ if separate_plot == 1
     errorbar(hAx1,t_series,xplot(1,2:end),eplot(1,2:end),'Linewidth',4,'color',[.2 .2 .2]);
     errorbar(hAx1,t_series,xplot(8,2:end),eplot(8,2:end),'Linewidth',4,'color',[.6 .6 .6]);
     set(hAx1,'FontSize',24)
+    axis([-inf inf 0 inf])
     %legend('Amp(rot)','Amp(iso)')
 
-    hAx2 = subplot(2,1,2);
-    hold(hAx2, 'on');
-    errorbar(hAx2,t_series,xplot(3,2:end),eplot(3,2:end),'Linewidth',4,'color',[1 0 1]);
-    errorbar(hAx2,t_series,xplot(5,2:end),eplot(5,2:end),'Linewidth',4,'color',[0.5 0 1]);
-    errorbar(hAx2,t_series,xplot(10,2:end),eplot(10,2:end),'Linewidth',4,'color',[0 0 1]);
-    set(hAx2,'FontSize',24)
-    ylim(hAx2,[-50 50])
+%     hAx2 = subplot(2,1,2);
+%     hold(hAx2, 'on');
+%     errorbar(hAx2,t_series,xplot(3,2:end),eplot(3,2:end),'Linewidth',4,'color',[1 0 1]);
+%     errorbar(hAx2,t_series,xplot(5,2:end),eplot(5,2:end),'Linewidth',4,'color',[0.5 0 1]);
+%     errorbar(hAx2,t_series,xplot(10,2:end),eplot(10,2:end),'Linewidth',4,'color',[0 0 1]);
+%     set(hAx2,'FontSize',24)
+%     ylim(hAx2,[-50 50])
     %legend('sx','sy','s')
 end

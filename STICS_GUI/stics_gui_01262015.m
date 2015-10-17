@@ -83,17 +83,46 @@ function load_image_Callback(hObject, eventdata, handles)
 clear handles.image_data handles.seri handles.img_file
 files = uipickfiles;
 filename = files{1};
-%[pathstr,name,ext] = fileparts(filename);
+[pathstr,name,ext] = fileparts(filename);
 
-[handles.seri, lsminf] = lsm_read(filename);
-handles.lsminf = lsminf;
-handles.num_ch = lsminf.NUMBER_OF_CHANNELS;
-%total number of frames
-handles.DimensionTime = lsminf.DimensionTime;
-%pixel size in um
-handles.pixel_size = lsminf.VoxelSizeX*10^(6);
-%frame time in s
-handles.t = lsminf.TimeStamps.TimeStamps(2);
+%if LSM file:
+if strcmp(ext,'.lsm')
+    [handles.seri, metainf] = lsm_read(filename);
+    handles.metainf = metainf;
+    handles.num_ch = metainf.NUMBER_OF_CHANNELS;
+    %total number of frames
+    handles.DimensionTime = metainf.DimensionTime;
+    %pixel size in um
+    handles.pixel_size = metainf.VoxelSizeX*10^(6);
+    %frame time in s
+    handles.t = metainf.TimeStamps.TimeStamps(2);
+end
+
+%if nd2 file:
+if strcmp(ext,'.nd2')
+    metainf=imreadBFmeta(filename);   
+    handles.metainf = metainf;
+    %total ch
+    handles.num_ch = metainf.channels;
+    %total number of frames
+    handles.DimensionTime = metainf.nframes;
+
+    for i = 1:size(metainf.parameterNames,1)
+        %frame time in s
+        if strcmp(metainf.parameterNames(i),'dFps')
+            handles.t = 1.0/str2num(metainf.parameterValues(i));
+        end
+        %pixel size in um
+        if strcmp(metainf.parameterNames(i),'dCalibration')
+            handles.pixel_size = metainf.parameterValues(i);
+        end
+    end
+    %HERE: currently load one channel at a time
+    %imradBF(file,z,t,ch)
+    handles.seri{1} = imreadBF(filename,1,1:handles.DimensionTime,1);
+    handles.seri{2} = imreadBF(filename,1,1:handles.DimensionTime,2);
+end
+
 
 axes(handles.stics_final);
 %imagesc to imshow
@@ -306,7 +335,7 @@ pixel_size = get(handles.pixel_size,'Value');
 t = get(handles.t,'Value');
 %simul8tr(sizeXdesired,sizeYdesired,sizeT,density,bleachType,bleachDecay,qYield,pixelsize,timesize,PSFType,PSFSize,PSFZ,noBits,diffCoeff,flowX,flowY,flowZ,countingNoise,backgroundNoise);
 
-simu_data = simul8tr(256,32,1000,[den1 den2],'none',[0 0],[1 1],pixel_size,t,'g',0.3,0,12,[diff1 diff2],[flowX1 flowX2],[flowY1 flowY2],[0 0],countingNoise,backgroundNoise);
+simu_data = simul8tr(32,32,1000,[den1 den2],'none',[0 0],[1 1],pixel_size,t,'g',0.3,0,12,[diff1 diff2],[flowX1 flowX2],[flowY1 flowY2],[0 0],countingNoise,backgroundNoise);
 
 %save into movie file
 save_mov = get(handles.save_mov,'value');
@@ -460,17 +489,21 @@ if immobile == 1
     image_data = handles.imm_data;
 end
 [ICS2DCorr] = partial_ICS(image_data,cx,cy,start_t,end_t,seg_size,tauLimit);
+
+maxICS = max(max(max(ICS2DCorr(:,:,2:end))))
+minICS = min(min(min(ICS2DCorr(:,:,2:end))))
+
 handles.ICS2DCorr = ICS2DCorr;
 
 %HERE: save for testing
-csvwrite('test.csv',ICS2DCorr(:,:,2));
+csvwrite('test.csv',ICS2DCorr(:,:,end));
 %ICS2DCorr = handles.ICS2DCorr;
 %save('corr.mat','ICS2DCorr');
 axes(handles.stics_corr);
 surf(handles.ICS2DCorr(:,:,2),'EdgeColor','none');
-%use the max at tau =1 for color upper limit 
-caxismax = max(max(max(ICS2DCorr(:,:,2:end))));
-caxismin = min(min(min(ICS2DCorr(:,:,2:end))));
+%use the max at tau =1 to end for color upper limit 
+caxismax = maxICS;
+caxismin = minICS;
 handles.caxismax = caxismax;
 handles.caxismin = caxismin;
 caxis(handles.stics_corr,[caxismin caxismax])
@@ -612,7 +645,9 @@ function pixel_time_Callback(hObject, eventdata, handles)
 image_data = handles.image_data;
 cx = get(handles.cx,'value'); 
 cy = get(handles.cy,'value');
-pixel_t = squeeze(image_data(cx,cy,:));
+start_t = get(handles.start_t,'value');
+end_t = get(handles.end_t,'value');
+pixel_t = squeeze(image_data(cx,cy,start_t:end_t));
 
 figure(1)
 plot(pixel_t,'linewidth',2);
@@ -882,7 +917,7 @@ if fit_option == 2
     
     %amplitude to linewidth between 0.5 to 4
     lmin = 0.5;
-    lmax = 4;
+    lmax = 5;
     %for median plot
     aallmin = min(min(amp1_all,amp2_all));
     aallmax = max(max(amp1_all,amp2_all));

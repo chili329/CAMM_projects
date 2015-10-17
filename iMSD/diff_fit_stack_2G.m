@@ -22,7 +22,7 @@ xdata(:,:,2) = Y;
 %Amp2: iso Gaussian
 %10^(-3)
 Amp1l = 5*10^(-4);Amp1u = 1;
-Amp2l = 5*g10^(-4);Amp2u = 1;
+Amp2l = 5*10^(-4);Amp2u = 1;
 
 %restrict center position
 xylim = 10;
@@ -34,6 +34,7 @@ y1l = -ysize/xylim;y1u = ysize/xylim;
 %s, sx, sy = 2*(FWHM/2.35)^2, use FWHM = xsize as the upper bound
 %use FWHM = 2.35 as the lower bound, for the very sharp, single pixel peak
 %is not of interest
+
 sxl = 2;sxu = 2*(xsize/2.35)^2;
 syl = 2;syu = 2*(xsize/2.35)^2;
 sl = 2;su = 2*(xsize/2.35)^2;
@@ -56,7 +57,7 @@ for t = 1:tsize
         x0 = x;
     end
     mean_scan = mean(mean(mean(scan(:,:,t))));
-    options = optimset('TolFun',power(10,-10));
+    options = optimset('TolFun',power(10,-10),'Display','off');
     
     %background only
     [xb,resnormb,rb,exitflagb,outputb,lambdab,Jb] = lsqcurvefit(@Background,x0(7),xdata,scan(:,:,t),lb(7),ub(7),options);
@@ -69,13 +70,13 @@ for t = 1:tsize
     x2t = x2;
     
     %statistical test for goodness of fit
-    SSE0 = resnormb
-    SSE1 = resnorm1
-    SSE2 = resnorm2
+    SSE0 = resnormb;
+    SSE1 = resnorm1;
+    SSE2 = resnorm2;
     SStotal = sum(sum((scan(:,:,t)-mean_scan*ones(xsize,ysize,1)).^2));
     rsquare0 = 1-SSE0/SStotal;
     rsquare1 = 1-SSE1/SStotal;
-    rsquare2 = 1-SSE2/SStotal
+    rsquare2 = 1-SSE2/SStotal;
     
     %issue with F test: df too large, always return p_value = 0!
     %df1 = xsize.*ysize-11; %degree of freedom
@@ -90,8 +91,8 @@ for t = 1:tsize
     
     %use likelihood ratio test to decide which model to use
     %[p_value] = lrt(mse1,mse2,N,df) where mse1 is from the smaller model
-    p_value0 = lrt(resnormb,resnorm1,xsize*ysize,4)
-    p_value1 = lrt(resnorm1,resnorm2,xsize*ysize,6)
+    p_value0 = lrt(resnormb,resnorm1,xsize*ysize,4);
+    p_value1 = lrt(resnorm1,resnorm2,xsize*ysize,6);
     
     %if the fit is poor with rsquare2 < 0.2, everything goes to 0
     %if p_value is greater than 0.05, then the improvement by adding
@@ -113,7 +114,7 @@ for t = 1:tsize
         r = r2;
         J = J2;
     end
-    model_type 
+ 
     %calculate standard errors from Jacobian and residuals
     [Q,R] = qr(J,0);
     mse = sum(sum(abs(r).^2))/(size(J,1)-size(J,2));
@@ -170,6 +171,12 @@ for t = 1:tsize
                 xnew(6,t) = xnew(6,t)+pi/2;
             end
         end
+    end
+    %HERE, why not working???
+    %if x axis and y axis are within 5% difference, then x axis = y axis
+    (sqrt(xnew(3,2))-sqrt(xnew(5,2)))/sqrt(xnew(3,2));
+    if (sqrt(xnew(3,t))-sqrt(xnew(5,t)))/sqrt(xnew(3,t))<0.1   
+        xnew(3,t) = xnew(5,t);
     end
     
 end
