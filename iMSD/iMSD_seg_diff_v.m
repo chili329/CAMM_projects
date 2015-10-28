@@ -10,8 +10,20 @@ MSD = zeros(t,1);
 x0 = zeros(t,1);
 y0 = zeros(t,1);
 
+model = 2;
 %for all time point fitting
-[xnew, residual] = diff_fit_stack(scan);
+if model == 1
+    [xnew, residual] = diff_fit_stack(scan);
+end
+
+if model == 2
+    %[Amp1,x0  ,sx  ,y0  ,sy  ,theta,  bg, Amp2,  x1,s    ,y1]
+    %[x(1),x(2),x(3),x(4),x(5),x(6) ,x(7), x(8),x(9),x(10),x(11)]
+    [xori, residual] = diff_fit_stack_2G(scan);
+    xnew(3,:) = xori(10,:);
+    xnew(2,:) = xori(9,:);
+    xnew(4,:) = xori(11,:);
+end
 
 %MSD is um^2, need to square the pixel size as well!!
 MSD = xnew(3,:)*p_size*p_size;
@@ -87,23 +99,43 @@ if isreal(v) == 0
     v = 0;
     str2 = strcat(str2,'-v');
 end
+%figure_type:
+%1: complete
+%2: simple
+figure_type = 2;
+if figure_type == 1
+    %for regular individual plot
+    figure(cx*1000+cy)
+    hold on
+    plot(x1,y,'k','linewidth',4);
+    plot(t_series,x0,'g','linewidth',2)
+    plot(t_series,y0,'b','linewidth',2)
+    f1 = polyval(p,x1);
+    plot(x1,f1,'color','r','linewidth',4);
 
-%for regular individual plot
-figure(cx*1000+cy)
+    str1 = strcat('D=',num2str(diff,'%.2f'),' ,v=',num2str(v,'%.2f'));
+    legend('MSD','x0','y0',str1)
+    legend(gca,'Location','northwest')
+
+    str2 = {str2,strcat(num2str(cx),',',num2str(cy))};
+    title(str2)
+
+    xlabel('time delay (s)','FontSize',16)
+    ylabel('um^2','FontSize',16)
+    set(gca,'FontSize',16)
+end
+
+if figure_type == 2
+    figure
+    hold on
+    plot(x1,y,'k','linewidth',4);
+    f1 = polyval(p,x1);
+    plot(x1,f1,'color','r','linewidth',4);
+    %xlabel('time delay (s)','FontSize',24)
+    %ylabel('um^2','FontSize',24)
+    set(gca,'FontSize',36)
+    diff
+end
+
 hold on
-plot(t_series,MSD,'k','linewidth',2)
-plot(t_series,x0,'g','linewidth',2)
-plot(t_series,y0,'b','linewidth',2)
-f1 = polyval(p,x1);
-plot(x1,f1,'color','r');
 
-str1 = strcat('D=',num2str(diff,'%.2f'),' ,v=',num2str(v,'%.2f'));
-legend('MSD','x0','y0',str1)
-legend(gca,'Location','northwest')
-
-str2 = {str2,strcat(num2str(cx),',',num2str(cy))};
-title(str2)
-
-xlabel('time delay (s)','FontSize',16)
-ylabel('um^2','FontSize',16)
-set(gca,'FontSize',16)

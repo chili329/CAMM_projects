@@ -37,17 +37,24 @@ if fit_option == 2
 end
 
 %OLD PLOT: surf plot
-% figure
-% subplot(1,2,1)
-% s=surf(scan);
-% set(s,'FaceColor','interp')
-% set(s,'EdgeColor','none')
-% set(s,'FaceAlpha',0.7)
-% set(gca,'FontSize',20)
-% hold on
-% m = surf(xdata(:,:,1),xdata(:,:,2),F);
-% set(m,'EdgeColor',[0.2 0.2 0.2])
-% axis off
+figure
+subplot(1,2,1)
+s=surf(scan);
+set(s,'FaceColor','interp')
+set(s,'EdgeColor','none')
+set(s,'FaceAlpha',0.7)
+set(gca,'FontSize',20)
+view(0,90)
+axis off
+axis equal
+figure
+m = surf(xdata(:,:,1),xdata(:,:,2),F);
+set(m,'EdgeColor',[0.2 0.2 0.2])
+set(s,'FaceColor','interp')
+set(s,'EdgeColor','none')
+view(0,90)
+axis off
+axis equal
 % title(str1)
 % set(gca,'FontSize',16)
 % 

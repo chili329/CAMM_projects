@@ -19,8 +19,18 @@ if population.diffCoeff ~= 0;
 end
 
 if (population.flowX ~= 0) | (population.flowY ~= 0)
-    population.xCoor = population.xCoor+(population.flowX*timesize)/pixelsize;
-    population.yCoor = population.yCoor+(population.flowY*timesize)/pixelsize;
+    %generate random direction
+    randx = round(rand);
+    if randx == 0
+        randx = -1;
+    end
+    randy = round(rand);
+    if randy == 0
+        randy = -1;
+    end
+    size(population.flowX)
+    population.xCoor = population.xCoor+(population.flowX*timesize)/pixelsize*randx;
+    population.yCoor = population.yCoor+(population.flowY*timesize)/pixelsize*randy;
 end
 
 if (population.flowZ ~= 0)

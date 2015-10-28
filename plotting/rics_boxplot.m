@@ -33,7 +33,7 @@ AR_3 = nan(x,1);
 %grouping
 for i = 1:x
     %filter
-    if AR_RICS(i,5) < 10000
+    if AR_RICS(i,5) < 20000
         
         %group by location
         if AR_RICS(i,1) == 0

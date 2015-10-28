@@ -135,7 +135,7 @@ p_value = T2Hot2ihe(stat_input);
 figure
 %s_color = linspace(1,10,size(G_total,1));
 %scatter(G_total,S_total,[],s_color,'filled','MarkerEdgeColor',[0 0 0])
-gscatter(G_total,S_total,exp_group,'bbrr','xoxo')
+gscatter(G_total,S_total,exp_group,'brbr','ddoo',10)
 xlabel('g')
 ylabel('s')
 %CHANGE FOR DIFFERENT GROUPS

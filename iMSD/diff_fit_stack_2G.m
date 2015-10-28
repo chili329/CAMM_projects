@@ -114,7 +114,7 @@ for t = 1:tsize
         r = r2;
         J = J2;
     end
- 
+    
     %calculate standard errors from Jacobian and residuals
     [Q,R] = qr(J,0);
     mse = sum(sum(abs(r).^2))/(size(J,1)-size(J,2));

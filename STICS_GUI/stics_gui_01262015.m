@@ -319,7 +319,7 @@ stics_plot(image_data, Vx_total, Vy_total,half_size,pixel_size)
 function simu_Callback(hObject, eventdata, handles)
 
 countingNoise = 0;
-backgroundNoise = 1;
+backgroundNoise = 0.1;
 
 flowX1 = get(handles.flowX1,'value');
 flowY1 = get(handles.flowY1,'value');
@@ -335,7 +335,15 @@ pixel_size = get(handles.pixel_size,'Value');
 t = get(handles.t,'Value');
 %simul8tr(sizeXdesired,sizeYdesired,sizeT,density,bleachType,bleachDecay,qYield,pixelsize,timesize,PSFType,PSFSize,PSFZ,noBits,diffCoeff,flowX,flowY,flowZ,countingNoise,backgroundNoise);
 
-simu_data = simul8tr(32,32,1000,[den1 den2],'none',[0 0],[1 1],pixel_size,t,'g',0.3,0,12,[diff1 diff2],[flowX1 flowX2],[flowY1 flowY2],[0 0],countingNoise,backgroundNoise);
+%simulate with boundary
+boundary = 1;
+if boundary == 0
+    simu_data = simul8tr(256,32,1000,[den1 den2],'none',[0 0],[1 1],pixel_size,t,'g',0.3,0,12,[diff1 diff2],[flowX1 flowX2],[flowY1 flowY2],[0 0],countingNoise,backgroundNoise);
+else
+    bsizeX = 44 ;
+    bsizeY = 44;
+    simu_data = simul8tr_bound([den1 den2],pixel_size,t,[diff1 diff2],[flowX1 flowX2],[flowY1 flowY2],countingNoise,backgroundNoise,bsizeX,bsizeY);
+end
 
 %save into movie file
 save_mov = get(handles.save_mov,'value');
@@ -500,15 +508,17 @@ csvwrite('test.csv',ICS2DCorr(:,:,end));
 %ICS2DCorr = handles.ICS2DCorr;
 %save('corr.mat','ICS2DCorr');
 axes(handles.stics_corr);
-surf(handles.ICS2DCorr(:,:,2),'EdgeColor','none');
+
 %use the max at tau =1 to end for color upper limit 
 caxismax = maxICS;
 caxismin = minICS;
 handles.caxismax = caxismax;
 handles.caxismin = caxismin;
-caxis(handles.stics_corr,[caxismin caxismax])
+caxis(handles.stics_corr,[caxismin caxismax]);
+surf(handles.ICS2DCorr(:,:,2),'EdgeColor','none');
 view(0,-90);
 axis('equal')
+zlim([caxismin caxismax])
 
 %create video
 save_mov = get(handles.save_mov,'value');
@@ -519,11 +529,11 @@ if save_mov == 1
     for k = 2:kmax 
        surf(handles.ICS2DCorr(:,:,k),'EdgeColor','none'); 
        colormap gray
-       caxismax = max(max(max(ICS2DCorr(:,:,2:end))));
-       caxismin = min(min(min(ICS2DCorr(:,:,2:end))));
        caxis(handles.stics_corr,[caxismin caxismax])
        view(0,-90);
        axis('equal')
+       axis([0,32,0,32])
+       zlim([caxismin caxismax])
        frame = getframe;
        writeVideo(writerObj,frame);
     end
@@ -602,15 +612,19 @@ else
     fra = tauLimit;
 end
 
+ICS2DCorr = handles.ICS2DCorr;
+
 rotate3d on
 axes(handles.stics_corr);
 
-surf(handles.ICS2DCorr(:,:,fra),'EdgeColor','none');
+surf(ICS2DCorr(:,:,fra),'EdgeColor','none');
 %HERE log z scale
 %set(gca,'zscale','log')
 colormap(handles.stics_corr,'gray')
-caxismax = handles.caxismax;
-caxismin = handles.caxismin;
+%caxismax = handles.caxismax;
+%caxismin = handles.caxismin;
+caxismax = max(max(max(ICS2DCorr(:,:,2:end))));
+caxismin = min(min(min(ICS2DCorr(:,:,2:end))));
 caxis(handles.stics_corr,[caxismin caxismax])
 axis(handles.stics_corr,handles.v2)
 view(0,-90);
@@ -618,6 +632,7 @@ axis('square')
 %HERE
 xlim([0 32])
 ylim([0 32])
+zlim([caxismin caxismax])
 
 
 % --- Executes during object creation, after setting all properties.
@@ -671,6 +686,7 @@ end
 cx = get(handles.cx,'value');
 cy = get(handles.cy,'value');
 
+%HERE
 fit_option = 2;
 %diffusion only
 %[MSD,x0,y0,diff,sig0] = iMSD_seg_diff(scan,time,p_size,cx,cy);
@@ -912,7 +928,7 @@ if fit_option == 2
     figure
     hold on
     raw_img = handles.image_data;
-    raw_mean = mean(raw_img(:,:,1:100),3);
+    raw_mean = mean(raw_img(:,:,1:1000),3);
     imagesc(flipud(raw_mean))
     
     %amplitude to linewidth between 0.5 to 4

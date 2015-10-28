@@ -37,7 +37,7 @@ eplot(1,:) = serror(1,:).*1000;
 eplot(8,:) = serror(8,:).*1000;
 
 %%%plotting%%%
-series_plot = 1;
+series_plot = 0;
 separate_plot = 1;
 if series_plot == 1
     figure(cx*1000+cy)

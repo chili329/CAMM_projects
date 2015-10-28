@@ -17,6 +17,7 @@ for i = 1:file_num
     %extract file name
     condition = strsplit(ref_file,'/');
     condition = condition(end);
+    condition = strrep(condition, '_', '\_');
 
     %median filter for G and S
     G = medfilt2(G, [5 5]);
@@ -38,6 +39,8 @@ for i = 1:file_num
     imagesc(new_int)
     colormap(gca,'gray')
     axis image
+    %HERE
+    %replace _ to \_
     title(condition)
     subplot(file_num,2,i*2)
     plot_phasor(new_G,new_S)
