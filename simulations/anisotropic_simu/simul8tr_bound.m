@@ -1,4 +1,4 @@
-function [postConv] = simul8tr_bound(density,pixelsize,timesize,diffCoeff,flowX,flowY,countingNoise,backgroundNoise,bsizeX,bsizeY);
+function [postConv] = simul8tr_bound(density,pixelsize,timesize,diffCoeff,flowX,flowY,countingNoise,backgroundNoise);
 
 sizeXdesired = 32;
 sizeYdesired = 32;
@@ -42,6 +42,12 @@ for i=1:size(density,2)
  
     xCoor=sizeX*rand(numParticles(i), 1);
     yCoor=sizeY*rand(numParticles(i), 1);
+    
+    %control initial location
+    %xCoor=sizeX*rand(numParticles(i), 1)./6+14;
+    %yCoor = ones(size(xCoor)).*5 - xCoor;
+    
+    
     population(i).xCoor = xCoor;
     population(i).yCoor = yCoor;
     population(i).xCoorDisplay = xCoor;
@@ -70,7 +76,7 @@ for i = 1:sizeT;
     for j = 1:size(density,2)
         % Adjust particle positions
         %HERE
-        population(j) = simul8trMovement(population(j),timesize,pixelsize,bsizeX,bsizeY,sizeZ);
+        population(j) = simul8trMovement_bound(population(j),timesize,pixelsize,sizeX,sizeY,sizeZ);
         %Bleaches stuff
         if (population(j).numToBleach(i) ~= 0) & (isnan(population(j).numToBleach(i)) ~= 1)
             population(j).qYield(find(population(j).qYield,population(j).numToBleach(i),'first'))=0;
@@ -82,6 +88,9 @@ for i = 1:sizeT;
     postConv(:,:,i) = convolveGaussian(sum(preConv,3),filtersize,PSFSize/pixelsize);
     
 end
+
+%save('population.mat','population')
+
 % Crops the "border" from the simulation
 postConv = postConv(round(PSFSize/pixelsize)*2+1:sizeY-round(PSFSize/pixelsize)*2,round(PSFSize/pixelsize)*2+1:sizeX-round(PSFSize/pixelsize)*2,:);
 % Adds background noise

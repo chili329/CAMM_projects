@@ -8,6 +8,7 @@
     %0: no segmentation
     %1: perform automatic cell segmentation (default)
     %2: manual cell segmentation
+    %<HERE>
     %3: automatic grid segmentation --> each grid is 32x32 pixels, so the
     %total grid for 256x256 image is 64.
 %folder_mode -
@@ -89,7 +90,7 @@ for cell = 1:num_group
         elseif cell_seg == 3
             gsize = 64;
             g_num = 256/gsize;
-            mask = NaN(256,256,g_num^2);
+            mask = zeros(256,256,g_num^2);
             grid = 0;
             for hori = 1:g_num
                 for verti = 1:g_num
@@ -153,12 +154,7 @@ figure
 gscatter(G_total,S_total,exp_group,'brbr','xxoo',14)
 xlabel('g')
 ylabel('s')
-
-% for NADH channel
-%should make equal axis?
-axis([0.2 0.8 0 0.6]);
-% for Coumarin
-%axis([0.35 0.4 0.46 0.51])
+axis([0.2 0.8 0.26 0.48]);
 
 %add reference line to show the control mean
 meanG = 0.52;

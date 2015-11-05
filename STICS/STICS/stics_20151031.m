@@ -1,7 +1,4 @@
-function [timecorr] = stics(imgser,upperTauLimit, method)
-
-% method = 1: Chi-Li's original method
-% method = 2: Dan's method
+function [timecorr] = stics(imgser,upperTauLimit)
 
 set(gcbf,'pointer','watch');
 
@@ -25,15 +22,8 @@ for tau = 0:upperTauLimit-1
        %filter2 method: bad
        %lagcorr(:,:,pair) = filter2(imgser(:,:,pair+tau),imgser(:,:,pair));
        
-       if method==1
-            %fft method
-            lagcorr(:,:,pair) = fftshift(real(ifft2(fft2(imgser(:,:,pair)).*conj(fft2(imgser(:,:,(pair+tau)))))));
-       elseif method== 2
-            %Dan's method
-            lagcorr(:,:,pair) = im_covar_fft(imgser(:,:,pair),imgser(:,:,pair+tau)) * imgsize;
-       else
-          error('Unknown method. Must be 1 or 2') 
-       end
+       %fft method
+       lagcorr(:,:,pair) = fftshift(real(ifft2(fft2(imgser(:,:,pair)).*conj(fft2(imgser(:,:,(pair+tau)))))));
        
        %norm_factor 1: by auto-correlation
        %norm_factor = imgser(:,:,pair).*imgser(:,:,pair+tau);
@@ -43,6 +33,8 @@ for tau = 0:upperTauLimit-1
        norm_factor = mean(mean(imgser(:,:,pair))).*mean(mean(imgser(:,:,pair+tau)))*size(imgser,1)*size(imgser,2);
        lagcorr1(:,:,pair) = lagcorr(:,:,pair)./norm_factor;
        
+       %Dan's method
+       %lagcorr1(:,:,pair) = im_covar_fft(imgser(:,:,pair),imgser(:,:,pair+tau));
     end
     
     timecorr(:,:,(tau+1)) = mean(lagcorr1,3)-ones(size(imgser,1),size(imgser,2));

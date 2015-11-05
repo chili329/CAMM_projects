@@ -29,6 +29,9 @@ if bleach_method == 2
     end
 end
 
+%remove NaN
+mobile1(isnan(mobile1)) = 0;
+
 %remove from each pixel its average in time and add the total_mean back
 moviefft = zeros(size(img_data));
 moviefft = fft(double(mobile1),[],3);

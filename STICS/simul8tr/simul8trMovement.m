@@ -11,7 +11,7 @@ function [population] = simul8trMovement(population,timesize,pixelsize,sizeX,siz
 % Do different kinds of particle movement here
 if population.diffCoeff ~= 0;
     %population.xCoor = population.xCoor+randn((size(population.xCoor))).*sqrt(2*population.diffCoeff*timesize*population.xCoor/10)/pixelsize;
-    population.xCoor = population.xCoor+randn((size(population.xCoor)))*sqrt(2*population.diffCoeff*timesize)/pixelsize;
+    population.xCoor = population.xCoor+randn((size(population.xCoor)))*sqrt(2*population.diffCoeff*5*timesize)/pixelsize;
     population.yCoor = population.yCoor+randn((size(population.yCoor)))*sqrt(2*population.diffCoeff*timesize)/pixelsize;
     if sizeZ ~= 0
         population.zCoor = population.zCoor+randn((size(population.zCoor)))*sqrt(2*population.diffCoeff*timesize)/pixelsize;
@@ -19,18 +19,8 @@ if population.diffCoeff ~= 0;
 end
 
 if (population.flowX ~= 0) | (population.flowY ~= 0)
-    %generate random direction
-    randx = round(rand);
-    if randx == 0
-        randx = -1;
-    end
-    randy = round(rand);
-    if randy == 0
-        randy = -1;
-    end
-    size(population.flowX)
-    population.xCoor = population.xCoor+(population.flowX*timesize)/pixelsize*randx;
-    population.yCoor = population.yCoor+(population.flowY*timesize)/pixelsize*randy;
+    population.xCoor = population.xCoor+(population.flowX*timesize)/pixelsize;
+    population.yCoor = population.yCoor+(population.flowY*timesize)/pixelsize;
 end
 
 if (population.flowZ ~= 0)

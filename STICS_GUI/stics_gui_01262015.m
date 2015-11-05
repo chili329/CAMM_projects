@@ -338,11 +338,9 @@ t = get(handles.t,'Value');
 %simulate with boundary
 boundary = 1;
 if boundary == 0
-    simu_data = simul8tr(256,32,1000,[den1 den2],'none',[0 0],[1 1],pixel_size,t,'g',0.3,0,12,[diff1 diff2],[flowX1 flowX2],[flowY1 flowY2],[0 0],countingNoise,backgroundNoise);
+    simu_data = simul8tr(32,32,1000,[den1 den2],'none',[0 0],[1 1],pixel_size,t,'g',0.3,0,12,[diff1 diff2],[flowX1 flowX2],[flowY1 flowY2],[0 0],countingNoise,backgroundNoise);
 else
-    bsizeX = 44 ;
-    bsizeY = 44;
-    simu_data = simul8tr_bound([den1 den2],pixel_size,t,[diff1 diff2],[flowX1 flowX2],[flowY1 flowY2],countingNoise,backgroundNoise,bsizeX,bsizeY);
+    simu_data = simul8tr_bound([den1 den2],pixel_size,t,[diff1 diff2],[flowX1 flowX2],[flowY1 flowY2],countingNoise,backgroundNoise);
 end
 
 %save into movie file
@@ -352,7 +350,7 @@ if save_mov == 1
     open(writerObj);
     for k = 1:100 
        imagesc(simu_data(:,:,k));
-       colormap(gray)
+       colormap(gray);
        frame = getframe;
        writeVideo(writerObj,frame);
     end
@@ -480,6 +478,7 @@ end
 
 
 % --- Executes on button press in partial_img.
+%'calculate ROI correlation' button
 function partial_img_Callback(hObject, eventdata, handles)
 
 image_data = handles.image_data;
@@ -493,10 +492,12 @@ seg_size = get(handles.seg_size,'value');
 tauLimit = get(handles.tauLimit,'value');
 immobile = get(handles.immobile,'value');
 
-if immobile == 1
-    image_data = handles.imm_data;
-end
-[ICS2DCorr] = partial_ICS(image_data,cx,cy,start_t,end_t,seg_size,tauLimit);
+%use global immfilter_new
+% if immobile == 1
+%     image_data = handles.imm_data;
+% end
+
+[ICS2DCorr] = partial_ICS(image_data,cx,cy,start_t,end_t,seg_size,tauLimit,immobile);
 
 maxICS = max(max(max(ICS2DCorr(:,:,2:end))))
 minICS = min(min(min(ICS2DCorr(:,:,2:end))))
@@ -504,7 +505,7 @@ minICS = min(min(min(ICS2DCorr(:,:,2:end))))
 handles.ICS2DCorr = ICS2DCorr;
 
 %HERE: save for testing
-csvwrite('test.csv',ICS2DCorr(:,:,end));
+%csvwrite('test.csv',ICS2DCorr(:,:,end));
 %ICS2DCorr = handles.ICS2DCorr;
 %save('corr.mat','ICS2DCorr');
 axes(handles.stics_corr);
@@ -628,10 +629,12 @@ caxismin = min(min(min(ICS2DCorr(:,:,2:end))));
 caxis(handles.stics_corr,[caxismin caxismax])
 axis(handles.stics_corr,handles.v2)
 view(0,-90);
+%view(90,0);
 axis('square')
 %HERE
 xlim([0 32])
 ylim([0 32])
+%zlim([-0.1 0.25])
 zlim([caxismin caxismax])
 
 
@@ -714,11 +717,11 @@ seg_size = get(handles.seg_size,'value');
 tauLimit = get(handles.tauLimit,'value');
 immobile = get(handles.immobile,'value');
 
-if immobile == 1
-    image_data = handles.imm_data;
-else
-    image_data = handles.image_data;
-end
+image_data = handles.image_data;
+% if immobile == 1
+%     %use global immfilter_new
+%     image_data = handles.imm_data;
+% end
 
 if isnumeric(handles.t) == 0
     time = get(handles.t,'value');
@@ -762,7 +765,7 @@ for i = imin : imax
     for j = jmin : jmax
        cx = i*mov_sizex+1;
        cy = j*mov_sizey+1;
-       [ICS2DCorr] = partial_ICS(image_data,cx,cy,start_t,end_t,seg_size,tauLimit);
+       [ICS2DCorr] = partial_ICS(image_data,cx,cy,start_t,end_t,seg_size,tauLimit,immobile);
        
        %diffusion
        %[MSD,x0,y0,diff,sig0] = iMSD_seg_diff(ICS2DCorr,time,p_size,cx,cy);

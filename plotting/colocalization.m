@@ -2,11 +2,11 @@
 % clear all
 % filename = uipickfiles;
 % file = filename{1};
-% [seri, metainf] = lsm_read(file);
-% AR = seri{3};
-% tub = seri{4};
-% AR = csvread('GFPAR.csv');
-% tub = csvread('tub.csv');
+% [seri, metainf] = lsm_read(file,3);
+% AR = seri{1};
+% tub = seri{2};
+%AR = csvread('GFPAR.csv');
+%tub = csvread('tub.csv');
 
 %option1: sub-location
 % subAR = AR(200:400,400:700);
@@ -28,14 +28,14 @@
 % y = tub1(:);
 
 %option3: manual ROI
-BW = roipoly(tub./max(tub(:)));
-cellAR = AR.*BW;
-celltub = tub.*BW;
-x = cellAR(:);
-y = celltub(:);
-indices = find(x==0);
-x(indices) = [];
-y(indices) = [];
+% BW = roipoly(tub./max(tub(:)));
+% cellAR = AR.*BW;
+% celltub = tub.*BW;
+% x = cellAR(:);
+% y = celltub(:);
+% indices = find(x==0);
+% x(indices) = [];
+% y(indices) = [];
 
 figure('Color',[1 1 1])
 a1= dscatter(x,y,'PLOTTYPE','scatter','BINS',[100 100]);

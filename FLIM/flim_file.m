@@ -39,8 +39,7 @@ for i = 1:file_num
     imagesc(new_int)
     colormap(gca,'gray')
     axis image
-    %HERE
-    %replace _ to \_
+    
     title(condition)
     subplot(file_num,2,i*2)
     plot_phasor(new_G,new_S)

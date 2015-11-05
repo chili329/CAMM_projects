@@ -1,4 +1,4 @@
-%cell segmentation from ref file (FLIM acquisition)
+ %cell segmentation from ref file (FLIM acquisition)
 %return mask(x,y,cell_num), each one represents a mask for a cell
 
 function [mask,cell_img,int4] = flim_cell_seg(ref_int)
@@ -39,13 +39,20 @@ if method == 2
     int4 = im2bw(int1, level);
     int4 = -int4;
     cc = bwconncomp(int4, 4);
+    
+    for_plot = ones(256,256);
     for j = 1:cc.NumObjects
         cell = false(size(int4));
         cell(cc.PixelIdxList{j}) = true;
         mask(:,:,j) = double(cell);
         mask( mask==0 )=NaN;
         cell_img(:,:,j) = mask(:,:,j).*ref_int;
+        %for_plot(:,:) = for_plot(:,:).*cell_img(:,:,j);
     end
+    
+    %figure
+    %imagesc(for_plot);
+    
 end
 
 
